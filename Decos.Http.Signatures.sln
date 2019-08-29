@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29215.179
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Decos.Http.Signatures", "src\Decos.Http.Signatures\Decos.Http.Signatures.csproj", "{2550AF1A-01AB-432D-BA4A-3A6C9189DF5E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Decos.Http.Signatures.Tests", "tests\Decos.Http.Signatures.Tests\Decos.Http.Signatures.Tests.csproj", "{7C22F55E-7271-471B-9D29-92F7C5A9FCFC}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2550AF1A-01AB-432D-BA4A-3A6C9189DF5E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2550AF1A-01AB-432D-BA4A-3A6C9189DF5E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2550AF1A-01AB-432D-BA4A-3A6C9189DF5E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2550AF1A-01AB-432D-BA4A-3A6C9189DF5E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7C22F55E-7271-471B-9D29-92F7C5A9FCFC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7C22F55E-7271-471B-9D29-92F7C5A9FCFC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7C22F55E-7271-471B-9D29-92F7C5A9FCFC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7C22F55E-7271-471B-9D29-92F7C5A9FCFC}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {11A69B84-15B2-4080-97BA-1F976ECD4C0A}
+	EndGlobalSection
+EndGlobal
