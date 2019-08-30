@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Security.Cryptography;
+using System.Text;
 
 namespace Decos.Http.Signatures
 {
@@ -57,25 +58,7 @@ namespace Decos.Http.Signatures
             if (timestamp == default)
                 throw new ArgumentException("A timestamp must be specified.", nameof(timestamp));
 
-            byte[] contentHash;
-            using (var hash = HashAlgorithm.Create(ContentAlgorithm))
-            {
-                var offset = message.Body.Position;
-                if (message.Body.CanSeek)
-                    message.Body.Seek(0, SeekOrigin.Begin);
-
-                contentHash = hash.ComputeHash(message.Body);
-
-                if (message.Body.CanSeek)
-                    message.Body.Seek(offset, SeekOrigin.Begin);
-            }
-
-            using (var keyedHash = KeyedHashAlgorithm.Create(Algorithm))
-            {
-                keyedHash.Key = Key;
-
-                throw new NotImplementedException();
-            }
+            return CalculateCore(message, nonce, timestamp);
         }
 
         /// <summary>
@@ -89,6 +72,66 @@ namespace Decos.Http.Signatures
             string nonce, DateTimeOffset timestamp)
         {
             throw new NotImplementedException();
+        }
+
+        protected virtual byte[] CalculateCore(HttpMessage message,
+            string nonce, DateTimeOffset timestamp)
+        {
+            var contentHash = CalculateContentHash(message);
+            var signatureData = new SignatureData
+            {
+                Target = $"{message.Method.ToUpperInvariant()} {message.Uri}",
+                Nonce = nonce,
+                Timestamp = timestamp,
+                ContentHash = contentHash
+            };
+
+            using (var keyedHash = KeyedHashAlgorithm.Create(Algorithm))
+            {
+                keyedHash.Key = Key;
+
+                var hashData = signatureData.GetRawData();
+                return keyedHash.ComputeHash(hashData);
+            }
+        }
+
+        private byte[] CalculateContentHash(HttpMessage message)
+        {
+            byte[] contentHash;
+            using (var hash = HashAlgorithm.Create(ContentAlgorithm))
+            {
+                var offset = message.Body.Position;
+                if (message.Body.CanSeek)
+                    message.Body.Seek(0, SeekOrigin.Begin);
+
+                contentHash = hash.ComputeHash(message.Body);
+
+                if (message.Body.CanSeek)
+                    message.Body.Seek(offset, SeekOrigin.Begin);
+            }
+
+            return contentHash;
+        }
+
+        private class SignatureData
+        {
+            public string Target { get; set; }
+
+            public string Nonce { get; set; }
+
+            public DateTimeOffset Timestamp { get; set; }
+
+            public byte[] ContentHash { get; set; }
+
+            public byte[] GetRawData()
+            {
+                var builder = new StringBuilder();
+                builder.AppendLine(Target);
+                builder.AppendLine(Nonce);
+                builder.AppendLine(Timestamp.ToUnixTimeSeconds().ToString());
+                builder.AppendLine(Convert.ToBase64String(ContentHash));
+                return Encoding.UTF8.GetBytes(builder.ToString());
+            }
         }
     }
 }

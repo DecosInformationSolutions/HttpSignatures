@@ -11,6 +11,12 @@ namespace Decos.Http.Signatures.Tests
             235, 196, 137, 217, 240, 82, 60, 124,
             183, 152, 235, 97, 174, 219, 44, 75 };
 
+        public static readonly byte[] TestKey2 = new byte[] {
+            207, 11, 82, 250, 46, 152, 92, 84,
+            77, 157, 49, 218, 72, 124, 21, 158,
+            13, 46, 189, 190, 2, 99, 181, 235,
+            139, 110, 13, 128, 230, 244, 222, 134 };
+
         public Task<bool> TryGetKeyAsync(string keyId, out byte[] key)
         {
             key = TestKey;
