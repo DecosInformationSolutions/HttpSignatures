@@ -227,6 +227,62 @@ namespace Decos.Http.Signatures.Tests
             hash1.Should().NotEqual(hash2);
         }
 
+        [Fact]
+        public void SignatureValidatesCorrectlyWithTheSameParameters()
+        {
+            var signature = GetTestSignature();
+            var message = GetTestMessage();
+            signature.Signature = signature.Calculate(message, TestNonce, TestClock.TestValue);
+
+            var result = signature.Validate(message, TestNonce, TestClock.TestValue);
+            result.Should().BeTrue();
+        }
+
+        [Fact]
+        public void SignatureValidatesCorrectlyWithTimestampWithinSameSecond()
+        {
+            var signature = GetTestSignature();
+            var message = GetTestMessage();
+            signature.Signature = signature.Calculate(message, TestNonce, TestClock.TestValue);
+
+            var result = signature.Validate(message, TestNonce, TestClock.TestValue.AddMilliseconds(100));
+            result.Should().BeTrue();
+        }
+
+        [Fact]
+        public void SignatureFailsToValidateWithDifferentNonce()
+        {
+            var signature = GetTestSignature();
+            var message = GetTestMessage();
+            signature.Signature = signature.Calculate(message, TestNonce, TestClock.TestValue);
+
+            var result = signature.Validate(message, TestNonce2, TestClock.TestValue);
+            result.Should().BeFalse();
+        }
+
+        [Fact]
+        public void SignatureFailsToValidateWithDifferentTimestamp()
+        {
+            var signature = GetTestSignature();
+            var message = GetTestMessage();
+            signature.Signature = signature.Calculate(message, TestNonce, TestClock.TestValue);
+
+            var result = signature.Validate(message, TestNonce, TestClock.TestValue.AddMinutes(5));
+            result.Should().BeFalse();
+        }
+
+        [Fact]
+        public void SignatureFailsToValidateWithDifferentMessage()
+        {
+            var signature = GetTestSignature();
+            var message = GetTestMessage();
+            signature.Signature = signature.Calculate(message, TestNonce, TestClock.TestValue);
+
+            var message2 = GetTestMessage("2");
+            var result = signature.Validate(message2, TestNonce, TestClock.TestValue);
+            result.Should().BeFalse();
+        }
+
         private HttpSignature GetTestSignature()
         {
             return new HttpSignature

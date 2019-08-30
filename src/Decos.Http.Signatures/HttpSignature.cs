@@ -37,6 +37,16 @@ namespace Decos.Http.Signatures
         /// <param name="nonce">A unique value for the signature.</param>
         /// <param name="timestamp">A timestamp for the signature.</param>
         /// <returns>The new signature.</returns>
+        /// <exception cref="InvalidOperationException">
+        /// <see cref="Key"/>, <see cref="Algorithm"/> or <see cref="ContentAlgorithm"/> are not
+        /// specified.
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="message"/> is <c>null</c>.
+        /// </exception>
+        /// <exception cref="ArgumentException">
+        /// <paramref name="nonce"/> or <paramref name="timestamp"/> are not specified.
+        /// </exception>
         public byte[] Calculate(HttpMessage message,
             string nonce, DateTimeOffset timestamp)
         {
@@ -71,9 +81,17 @@ namespace Decos.Http.Signatures
         public bool Validate(HttpMessage message,
             string nonce, DateTimeOffset timestamp)
         {
-            throw new NotImplementedException();
+            var newHash = Calculate(message, nonce, timestamp);
+            return newHash.HashEquals(Signature);
         }
 
+        /// <summary>
+        /// Calculates a new signature for the specified parameters.
+        /// </summary>
+        /// <param name="message">The HTTP message to calculate a signature for.</param>
+        /// <param name="nonce">A unique value for the signature.</param>
+        /// <param name="timestamp">A timestamp for the signature.</param>
+        /// <returns>A byte array that contains the hash.</returns>
         protected virtual byte[] CalculateCore(HttpMessage message,
             string nonce, DateTimeOffset timestamp)
         {
