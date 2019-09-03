@@ -5,6 +5,9 @@ namespace Decos.Http.Signatures.Tests
 {
     public class TestKeyLookup : IKeyLookup
     {
+        public const string ValidKeyId = "90694e5216a5f4db";
+        public const string InvalidKeyId = "e2a24c1d71579ae0";
+
         public static readonly byte[] TestKey = new byte[] {
             226, 115, 163, 94, 84, 108, 198, 198,
             83, 27, 221, 186, 237, 50, 62, 146,
@@ -19,8 +22,14 @@ namespace Decos.Http.Signatures.Tests
 
         public Task<bool> TryGetKeyAsync(string keyId, out byte[] key)
         {
-            key = TestKey;
-            return Task.FromResult(true);
+            if (keyId == ValidKeyId)
+            {
+                key = TestKey;
+                return Task.FromResult(true);
+            }
+
+            key = null;
+            return Task.FromResult(false);
         }
     }
 }

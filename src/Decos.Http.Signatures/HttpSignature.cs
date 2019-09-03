@@ -28,7 +28,7 @@ namespace Decos.Http.Signatures
         /// <summary>
         /// Gets or sets the calculated signature.
         /// </summary>
-        public byte[] Signature { get; set; }
+        public byte[] Hash { get; set; }
 
         /// <summary>
         /// Calculates a new signature for the specified parameters.
@@ -82,7 +82,7 @@ namespace Decos.Http.Signatures
             string nonce, DateTimeOffset timestamp)
         {
             var newHash = Calculate(message, nonce, timestamp);
-            return newHash.HashEquals(Signature);
+            return newHash.HashEquals(Hash);
         }
 
         /// <summary>

@@ -232,7 +232,7 @@ namespace Decos.Http.Signatures.Tests
         {
             var signature = GetTestSignature();
             var message = GetTestMessage();
-            signature.Signature = signature.Calculate(message, TestNonce, TestClock.TestValue);
+            signature.Hash = signature.Calculate(message, TestNonce, TestClock.TestValue);
 
             var result = signature.Validate(message, TestNonce, TestClock.TestValue);
             result.Should().BeTrue();
@@ -243,7 +243,7 @@ namespace Decos.Http.Signatures.Tests
         {
             var signature = GetTestSignature();
             var message = GetTestMessage();
-            signature.Signature = signature.Calculate(message, TestNonce, TestClock.TestValue);
+            signature.Hash = signature.Calculate(message, TestNonce, TestClock.TestValue);
 
             var result = signature.Validate(message, TestNonce, TestClock.TestValue.AddMilliseconds(100));
             result.Should().BeTrue();
@@ -254,7 +254,7 @@ namespace Decos.Http.Signatures.Tests
         {
             var signature = GetTestSignature();
             var message = GetTestMessage();
-            signature.Signature = signature.Calculate(message, TestNonce, TestClock.TestValue);
+            signature.Hash = signature.Calculate(message, TestNonce, TestClock.TestValue);
 
             var result = signature.Validate(message, TestNonce2, TestClock.TestValue);
             result.Should().BeFalse();
@@ -265,7 +265,7 @@ namespace Decos.Http.Signatures.Tests
         {
             var signature = GetTestSignature();
             var message = GetTestMessage();
-            signature.Signature = signature.Calculate(message, TestNonce, TestClock.TestValue);
+            signature.Hash = signature.Calculate(message, TestNonce, TestClock.TestValue);
 
             var result = signature.Validate(message, TestNonce, TestClock.TestValue.AddMinutes(5));
             result.Should().BeFalse();
@@ -276,7 +276,7 @@ namespace Decos.Http.Signatures.Tests
         {
             var signature = GetTestSignature();
             var message = GetTestMessage();
-            signature.Signature = signature.Calculate(message, TestNonce, TestClock.TestValue);
+            signature.Hash = signature.Calculate(message, TestNonce, TestClock.TestValue);
 
             var message2 = GetTestMessage("2");
             var result = signature.Validate(message2, TestNonce, TestClock.TestValue);
