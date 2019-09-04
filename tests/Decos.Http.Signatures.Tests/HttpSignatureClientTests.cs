@@ -72,18 +72,6 @@ namespace Decos.Http.Signatures.Tests
         }
 
         [Fact]
-        public async Task SignatureClientCreatesUsableSignature()
-        {
-            var client = CreateClient();
-
-            var signature = await client.CreateAsync(TestKeyLookup.ValidKeyId);
-
-            var message = CreateTestMessage();
-            signature.Hash = signature.Calculate(message, TestNonce, TestClock.TestValue);
-            signature.Validate(message, TestNonce, TestClock.TestValue).Should().BeTrue();
-        }
-
-        [Fact]
         public async Task SignatureClientValidatesValidSignatureCorrectly()
         {
             var client = CreateClient();
@@ -98,7 +86,49 @@ namespace Decos.Http.Signatures.Tests
         }
 
         [Fact]
+        public async Task SignatureClientCorrectlyValidatesIfSignatureIsValid()
+        {
+            var client = CreateClient();
+            var message = CreateTestMessage();
+            var signature = await client.CreateAsync(TestKeyLookup.ValidKeyId,
+                signature: s_testMessageDefaultSignature);
+
+            var result = client.Validate(signature,
+                message, TestNonce, TestClock.TestValue);
+
+            result.Should().Be(SignatureValidationResult.OK);
+        }
+
+        [Fact]
+        public async Task SignatureClientCorrectlyValidatesIfTimestampIsOffByLessThanASecond()
+        {
+            var client = CreateClient();
+            var message = CreateTestMessage();
+            var signature = await client.CreateAsync(TestKeyLookup.ValidKeyId,
+                signature: s_testMessageDefaultSignature);
+
+            var result = client.Validate(signature,
+                message, TestNonce, TestClock.TestValue.AddMilliseconds(500));
+
+            result.Should().Be(SignatureValidationResult.OK);
+        }
+
+        [Fact]
         public async Task SignatureClientFailsValidationIfSignatureIsInvalid()
+        {
+            var client = CreateClient();
+            var message = CreateTestMessage();
+            var signature = await client.CreateAsync(TestKeyLookup.ValidKeyId,
+                signature: s_testMessageDefaultSignature2);
+
+            var result = client.Validate(signature,
+                message, TestNonce, TestClock.TestValue);
+
+            result.Should().Be(SignatureValidationResult.Invalid);
+        }
+
+        [Fact]
+        public async Task SignatureClientFailsValidationIfTimestampIsIncorrect()
         {
             var client = CreateClient();
             var message = CreateTestMessage();
@@ -107,7 +137,7 @@ namespace Decos.Http.Signatures.Tests
                 signature: expected);
 
             var result = client.Validate(signature,
-                message, TestNonce, TestClock.TestValue);
+                message, TestNonce, TestClock.TestValue.AddMinutes(5));
 
             result.Should().Be(SignatureValidationResult.Invalid);
         }
@@ -185,6 +215,44 @@ namespace Decos.Http.Signatures.Tests
             var result = client.Validate(signature,
                 message, TestNonce, TestClock.TestValue);
 
+            result.Should().Be(SignatureValidationResult.OK);
+        }
+
+        [Fact]
+        public async Task SignatureClientGeneratesRandomNonce()
+        {
+            var client = CreateClient();
+            var message = CreateTestMessage();
+            var signature = await client.CreateAsync(TestKeyLookup.ValidKeyId);
+
+            client.Calculate(signature, message, out var nonce1, out _);
+            client.Calculate(signature, message, out var nonce2, out _);
+
+            nonce1.Should().NotBe(nonce2);
+        }
+
+        [Fact]
+        public async Task SignatureClientUsesCurrentTime()
+        {
+            var client = CreateClient();
+            var message = CreateTestMessage();
+            var signature = await client.CreateAsync(TestKeyLookup.ValidKeyId);
+
+            client.Calculate(signature, message, out _, out var timestamp);
+
+            timestamp.Should().Be(_testClock.UtcNow);
+        }
+
+        [Fact]
+        public async Task SignatureClientGeneratesValidSignature()
+        {
+            var client = CreateClient();
+            var message = CreateTestMessage();
+            var signature = await client.CreateAsync(TestKeyLookup.ValidKeyId);
+
+            signature.Hash = client.Calculate(signature, message, out var nonce, out var timestamp);
+
+            var result = client.Validate(signature, message, nonce, timestamp);
             result.Should().Be(SignatureValidationResult.OK);
         }
 

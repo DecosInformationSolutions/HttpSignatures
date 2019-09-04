@@ -6,7 +6,7 @@ using System.Text;
 namespace Decos.Http.Signatures
 {
     /// <summary>
-    /// Represents a signature in an HTTP request or response message.
+    /// Represents a signature for an HTTP message.
     /// </summary>
     public class HttpSignature
     {
@@ -69,20 +69,6 @@ namespace Decos.Http.Signatures
                 throw new ArgumentException("A timestamp must be specified.", nameof(timestamp));
 
             return CalculateCore(message, nonce, timestamp);
-        }
-
-        /// <summary>
-        /// Checks whether the calculated signature is correct for the specified parameters.
-        /// </summary>
-        /// <param name="message">The HTTP message that was used to calculate the signature.</param>
-        /// <param name="nonce">A unique value for the signature.</param>
-        /// <param name="timestamp">A timestamp for the signature.</param>
-        /// <returns><c>true</c> if the signature is valid; otherwise, <c>false</c>.</returns>
-        public bool Validate(HttpMessage message,
-            string nonce, DateTimeOffset timestamp)
-        {
-            var newHash = Calculate(message, nonce, timestamp);
-            return newHash.HashEquals(Hash);
         }
 
         /// <summary>
