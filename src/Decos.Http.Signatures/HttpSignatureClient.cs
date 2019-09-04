@@ -54,7 +54,7 @@ namespace Decos.Http.Signatures
 
         /// <summary>
         /// Creates a new <see cref="HttpSignature"/> object for calculating or validating a
-        /// signature with the specified parameters.
+        /// signature using the specified parameters.
         /// </summary>
         /// <param name="keyId">
         /// An identifier for the key used to calculate or validate the signature.
@@ -88,6 +88,18 @@ namespace Decos.Http.Signatures
                 ContentAlgorithm = contentAlgorithm ?? Options.DefaultContentAlgorithm,
                 Hash = signature
             };
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="HttpSignature"/> object for calculating or validating a
+        /// signature using the specified serialized parameters.
+        /// </summary>
+        /// <param name="serializedString">A comma-separated string of name/value pairs.</param>
+        /// <returns>A task that returns a new <see cref="HttpSignature"/>.</returns>
+        public virtual Task<HttpSignature> ParseAsync(string serializedString)
+        {
+            var param = SignatureParams.Parse(serializedString);
+            return CreateAsync(param.KeyId, param.Algorithm, param.ContentAlgorithm, param.Signature);
         }
 
         /// <summary>

@@ -62,6 +62,17 @@ namespace Decos.Http.Signatures.Tests
         }
 
         [Fact]
+        public async Task SignatureClientLoadsKeyFromSerializedString()
+        {
+            var client = CreateClient();
+            const string serializedString = "keyId=\""+TestKeyLookup.ValidKeyId+"\"";
+
+            var signature = await client.ParseAsync(serializedString);
+
+            signature.Key.Should().Equal(TestKeyLookup.TestKey);
+        }
+
+        [Fact]
         public async Task SignatureClientThrowsIfKeyCannotBeFound()
         {
             var client = CreateClient();
