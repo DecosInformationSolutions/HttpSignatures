@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Decos.Http.Signatures {
+namespace Decos.Http.Signatures.Validation {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace Decos.Http.Signatures {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Decos.Http.Signatures.Strings", typeof(Strings).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Decos.Http.Signatures.Validation.Strings", typeof(Strings).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -75,24 +75,6 @@ namespace Decos.Http.Signatures {
         internal static string KeyNotFound_WithId {
             get {
                 return ResourceManager.GetString("KeyNotFound_WithId", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to There was a problem with the signature..
-        /// </summary>
-        internal static string Signature {
-            get {
-                return ResourceManager.GetString("Signature", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The signature has expired is or not yet valid..
-        /// </summary>
-        internal static string SignatureExpired {
-            get {
-                return ResourceManager.GetString("SignatureExpired", resourceCulture);
             }
         }
     }

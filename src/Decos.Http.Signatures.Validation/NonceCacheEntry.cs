@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.Tracing;
 using System.Text;
 
-namespace Decos.Http.Signatures
+namespace Decos.Http.Signatures.Validation
 {
     internal readonly struct NonceCacheEntry
     {

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-namespace Decos.Http.Signatures
+namespace Decos.Http.Signatures.Validation
 {
     /// <summary>
     /// Defines a mechanism for looking up cryptographic keys.

@@ -123,10 +123,4 @@
   <data name="KeyNotFound_WithId" xml:space="preserve">
     <value>Could not find a key with ID "{0}".</value>
   </data>
-  <data name="Signature" xml:space="preserve">
-    <value>There was a problem with the signature.</value>
-  </data>
-  <data name="SignatureExpired" xml:space="preserve">
-    <value>The signature has expired is or not yet valid.</value>
-  </data>
 </root>

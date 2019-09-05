@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-namespace Decos.Http.Signatures.Tests
+namespace Decos.Http.Signatures.Validation.Tests
 {
-    internal class TestKeyLookup : IKeyLookup
+    public class TestKeyLookup : IKeyLookup
     {
         public const string ValidKeyId = "90694e5216a5f4db";
         public const string InvalidKeyId = "e2a24c1d71579ae0";

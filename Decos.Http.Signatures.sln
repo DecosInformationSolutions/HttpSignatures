@@ -3,9 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29215.179
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Decos.Http.Signatures", "src\Decos.Http.Signatures\Decos.Http.Signatures.csproj", "{2550AF1A-01AB-432D-BA4A-3A6C9189DF5E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Decos.Http.Signatures", "src\Decos.Http.Signatures\Decos.Http.Signatures.csproj", "{2550AF1A-01AB-432D-BA4A-3A6C9189DF5E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Decos.Http.Signatures.Tests", "tests\Decos.Http.Signatures.Tests\Decos.Http.Signatures.Tests.csproj", "{7C22F55E-7271-471B-9D29-92F7C5A9FCFC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Decos.Http.Signatures.Tests", "tests\Decos.Http.Signatures.Tests\Decos.Http.Signatures.Tests.csproj", "{7C22F55E-7271-471B-9D29-92F7C5A9FCFC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Decos.Http.Signatures.Validation", "src\Decos.Http.Signatures.Validation\Decos.Http.Signatures.Validation.csproj", "{76F758B5-42EC-4A33-8EC8-D16FD6FA61BC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Decos.Http.Signatures.Validation.Tests", "tests\Decos.Http.Signatures.Validation.Tests\Decos.Http.Signatures.Validation.Tests.csproj", "{F79A019D-7479-4394-B4A0-F5BD0DBAB30B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +25,14 @@ Global
 		{7C22F55E-7271-471B-9D29-92F7C5A9FCFC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7C22F55E-7271-471B-9D29-92F7C5A9FCFC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7C22F55E-7271-471B-9D29-92F7C5A9FCFC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{76F758B5-42EC-4A33-8EC8-D16FD6FA61BC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{76F758B5-42EC-4A33-8EC8-D16FD6FA61BC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{76F758B5-42EC-4A33-8EC8-D16FD6FA61BC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{76F758B5-42EC-4A33-8EC8-D16FD6FA61BC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F79A019D-7479-4394-B4A0-F5BD0DBAB30B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F79A019D-7479-4394-B4A0-F5BD0DBAB30B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F79A019D-7479-4394-B4A0-F5BD0DBAB30B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F79A019D-7479-4394-B4A0-F5BD0DBAB30B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

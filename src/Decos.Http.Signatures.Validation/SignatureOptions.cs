@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Security.Cryptography;
 
-namespace Decos.Http.Signatures
+namespace Decos.Http.Signatures.Validation
 {
     /// <summary>
     /// Represents the options that control signature calculation and validation.

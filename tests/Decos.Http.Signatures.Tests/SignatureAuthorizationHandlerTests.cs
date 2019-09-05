@@ -14,8 +14,8 @@ namespace Decos.Http.Signatures.Tests
         [Fact]
         public async Task MessageHandlerSignsRequests()
         {
-            var algorithm = new HttpSignatureAlgorithm(TestKeyLookup.TestKey, new TestClock());
-            var handler = new SignatureAuthorizationHandler(TestKeyLookup.ValidKeyId, algorithm,
+            var algorithm = new HttpSignatureAlgorithm(TestKeyConstants.TestKey, new TestClock());
+            var handler = new SignatureAuthorizationHandler(TestKeyConstants.ValidKeyId, algorithm,
                 new RequireSignatureHandler());
             using (var client = new HttpClient(handler))
             {

@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
-
+using Decos.Http.Signatures.Tests;
 using FluentAssertions;
 
 using Microsoft.Extensions.Caching.Memory;
@@ -8,7 +8,7 @@ using Microsoft.Extensions.Options;
 
 using Xunit;
 
-namespace Decos.Http.Signatures.Tests
+namespace Decos.Http.Signatures.Validation.Tests
 {
     public class HttpSignatureValidatorTests
     {

@@ -1,17 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace Decos.Http.Signatures
+namespace Decos.Http.Signatures.Validation
 {
     public class KeyNotFoundException : Exception
     {
-        public KeyNotFoundException() 
+        public KeyNotFoundException()
             : base(Strings.KeyNotFound)
         {
         }
 
-        public KeyNotFoundException(string message) 
+        public KeyNotFoundException(string message)
             : base(message)
         {
         }
@@ -22,7 +20,7 @@ namespace Decos.Http.Signatures
             KeyId = keyId;
         }
 
-        public KeyNotFoundException(string message, Exception innerException) 
+        public KeyNotFoundException(string message, Exception innerException)
             : base(message, innerException)
         {
         }

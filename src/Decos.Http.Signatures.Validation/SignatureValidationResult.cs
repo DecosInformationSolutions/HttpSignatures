@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Decos.Http.Signatures
+namespace Decos.Http.Signatures.Validation
 {
     public enum SignatureValidationResult
     {

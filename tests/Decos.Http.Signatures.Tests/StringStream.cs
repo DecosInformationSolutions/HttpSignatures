@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Decos.Http.Signatures.Tests
 {
-    internal class StringStream : MemoryStream
+    public class StringStream : MemoryStream
     {
         public StringStream(string value)
             : this(value, Encoding.UTF8)

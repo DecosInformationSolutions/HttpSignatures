@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 
-namespace Decos.Http.Signatures
+namespace Decos.Http.Signatures.Validation
 {
     /// <summary>
     /// Validates signed HTTP messages.
@@ -53,8 +53,8 @@ namespace Decos.Http.Signatures
         protected SignatureOptions Options { get; }
 
         /// <summary>
-        /// Creates a new <see cref="HttpSignatureAlgorithm"/> object for validating a
-        /// signature using the specified key identifier.
+        /// Creates a new <see cref="HttpSignatureAlgorithm"/> object for validating a signature
+        /// using the specified key identifier.
         /// </summary>
         /// <param name="keyId">
         /// An identifier for the key used to calculate or validate the signature.
@@ -81,13 +81,11 @@ namespace Decos.Http.Signatures
         //    if (timeDiff.Duration() > Options.ClockSkewMargin)
         //        return SignatureValidationResult.Expired;
 
-        //    var entry = new NonceCacheEntry(nonce);
-        //    if (Cache.TryGetValue(entry, out _))
-        //        return SignatureValidationResult.Duplicate;
+        // var entry = new NonceCacheEntry(nonce); if (Cache.TryGetValue(entry, out _)) return
+        // SignatureValidationResult.Duplicate;
 
-        //    var newHash = signature.Calculate(message, nonce, timestamp);
-        //    if (!newHash.HashEquals(signature.Hash))
-        //        return SignatureValidationResult.Invalid;
+        // var newHash = signature.Calculate(message, nonce, timestamp); if
+        // (!newHash.HashEquals(signature.Hash)) return SignatureValidationResult.Invalid;
 
         //    Cache.Set(entry, true, Options.NonceExpiration);
         //    return SignatureValidationResult.OK;

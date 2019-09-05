@@ -183,8 +183,8 @@ namespace Decos.Http.Signatures.Tests
         [Fact]
         public void CalculatedSignatureIsDifferentForDifferentKeys()
         {
-            var signature1 = new HttpSignatureAlgorithm(TestKeyLookup.TestKey);
-            var signature2 = new HttpSignatureAlgorithm(TestKeyLookup.TestKey2);
+            var signature1 = new HttpSignatureAlgorithm(TestKeyConstants.TestKey);
+            var signature2 = new HttpSignatureAlgorithm(TestKeyConstants.TestKey2);
 
             var hash1 = signature1.CalculateHash(TestMethod, TestUri, new StringStream(""), TestNonce, TestClock.TestValue);
             var hash2 = signature2.CalculateHash(TestMethod, TestUri, new StringStream(""), TestNonce, TestClock.TestValue);
@@ -193,7 +193,7 @@ namespace Decos.Http.Signatures.Tests
 
         private HttpSignatureAlgorithm GetTestAlgorithm()
         {
-            return new HttpSignatureAlgorithm(TestKeyLookup.TestKey);
+            return new HttpSignatureAlgorithm(TestKeyConstants.TestKey);
         }
     }
 }
