@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Net.Http.Headers;
 using System.Text.RegularExpressions;
+using System.Xml;
 
 namespace Decos.Http.Signatures
 {
@@ -8,9 +11,9 @@ namespace Decos.Http.Signatures
     {
         public string KeyId { get; set; }
 
-        public string Algorithm { get; set; }
+        public string Nonce { get; set; }
 
-        public string ContentAlgorithm { get; set; }
+        public DateTimeOffset Timestamp { get; set; }
 
         public byte[] Signature { get; set; }
 
@@ -18,23 +21,43 @@ namespace Decos.Http.Signatures
         {
             var items = Deserialize(serializedString);
 
-            if (!items.TryGetValue("keyId", out var keyId))
-                throw new FormatException("A keyId was not specified.");
+            if (!items.TryGetValue("keyId", out var keyId) || keyId is null)
+                throw new FormatException("The 'keyId' value is missing.");
 
-            items.TryGetValue("algorithm", out var algorithm);
-            items.TryGetValue("contentAlgorithm", out var contentAlgorithm);
+            if (!items.TryGetValue("nonce", out var nonce) || nonce is null)
+                throw new FormatException("The 'nonce' value is missing.");
 
-            byte[] signatureHash = null;
-            if (items.TryGetValue("signature", out var signature))
-                signatureHash = Convert.FromBase64String(signature);
+            if (!items.TryGetValue("created", out var created) || created is null)
+                throw new FormatException("The 'created' value is missing.");
+            var timestamp = ParseCreated(created);
+
+            if (!items.TryGetValue("signature", out var signature) || signature is null)
+                throw new FormatException("The 'signature' value is missing.");
+            var signatureHash = Convert.FromBase64String(signature);
 
             return new SignatureParams
             {
                 KeyId = keyId,
-                Algorithm = algorithm,
-                ContentAlgorithm = contentAlgorithm,
+                Nonce = nonce,
+                Timestamp = timestamp,
                 Signature = signatureHash
             };
+        }
+
+        private static DateTimeOffset ParseCreated(string created)
+        {
+            if (DateTimeOffset.TryParse(created, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out var dateTime))
+                return dateTime;
+
+            if (long.TryParse(created, out var seconds))
+                return DateTimeOffset.FromUnixTimeSeconds(seconds);
+
+            throw new FormatException($"The 'created' value is not a recognized date/time value. Value: \"{created}\"");
+        }
+
+        public override string ToString()
+        {
+            throw new NotImplementedException();
         }
 
         private static Dictionary<string, string> Deserialize(string serializedString)

@@ -1,5 +1,5 @@
 ﻿using System;
-
+using System.Globalization;
 using FluentAssertions;
 
 using Xunit;
@@ -12,7 +12,7 @@ namespace Decos.Http.Signatures.Tests
         public void KeyIdCanBeParsed()
         {
             const string keyId = "test";
-            const string serializedString = "keyId=" + keyId;
+            const string serializedString = "keyId=" + keyId + ",nonce=test,created=1,signature=\"OSQPsZ+PegY=\"";
 
             var param = SignatureParams.Parse(serializedString);
 
@@ -23,7 +23,7 @@ namespace Decos.Http.Signatures.Tests
         public void KeyIdCanBeParsedCaseInsensitive()
         {
             const string keyId = "test";
-            const string serializedString = "KEYID=" + keyId;
+            const string serializedString = "KEYID=" + keyId + ",nonce=test,created=1,signature=\"OSQPsZ+PegY=\"";
 
             var param = SignatureParams.Parse(serializedString);
 
@@ -34,7 +34,7 @@ namespace Decos.Http.Signatures.Tests
         public void QuotedKeyIdCanBeParsed()
         {
             const string keyId = "te,st";
-            const string serializedString = "keyId=\"" + keyId + "\"";
+            const string serializedString = "keyId=\"" + keyId + "\",nonce=test,created=1,signature=\"OSQPsZ+PegY=\"";
 
             var param = SignatureParams.Parse(serializedString);
 
@@ -42,42 +42,32 @@ namespace Decos.Http.Signatures.Tests
         }
 
         [Fact]
-        public void ParamsCannotBeParsedWithoutKeyId()
+        public void NonceCanBeParsed()
         {
-            const string serializedString = "algorithm=\"HMACSHA256\",signature=\"OSQPsZ+PegY=\"";
-
-            Action parse = () => SignatureParams.Parse(serializedString);
-
-            parse.Should().Throw<FormatException>();
-        }
-
-        [Fact]
-        public void AlgorithmCanBeParsed()
-        {
-            const string algorithm = "HMACSHA256";
-            const string serializedString = "keyId=\"test\",algorithm=\"" + algorithm + "\"";
+            const string nonce = "99e3006e-b846-4fe6-9572-6b5e2031773f";
+            const string serializedString = "keyId=\"test\",nonce=\"" + nonce + "\",created=1,signature=\"OSQPsZ+PegY=\"";
 
             var param = SignatureParams.Parse(serializedString);
 
-            param.Algorithm.Should().Be(algorithm);
+            param.Nonce.Should().Be(nonce);
         }
 
         [Fact]
-        public void ContentAlgorithmCanBeParsed()
+        public void TimestampCanBeParsedFromIso8601String()
         {
-            const string algorithm = "SHA256";
-            const string serializedString = "keyId=\"test\",contentAlgorithm=\"" + algorithm + "\"";
+            var timestamp = TestClock.TestValue;
+            var serializedString = "keyId=test,nonce=test,created=\"" + timestamp.ToString("s", CultureInfo.InvariantCulture) + "\",signature=\"OSQPsZ+PegY=\"";
 
             var param = SignatureParams.Parse(serializedString);
 
-            param.ContentAlgorithm.Should().Be(algorithm);
+            param.Timestamp.Should().Be(timestamp);
         }
 
         [Fact]
         public void SignatureCanBeParsed()
         {
             var hash = new byte[8] { 57, 36, 15, 177, 159, 143, 122, 6 };
-            const string serializedString = "keyId=\"test\",signature=\"OSQPsZ+PegY=\"";
+            const string serializedString = "keyId=\"test\",nonce=test,created=1,signature=\"OSQPsZ+PegY=\"";
 
             var param = SignatureParams.Parse(serializedString);
 
