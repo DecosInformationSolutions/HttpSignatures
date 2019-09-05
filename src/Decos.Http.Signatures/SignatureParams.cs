@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Net.Http.Headers;
+using System.Text;
 using System.Text.RegularExpressions;
-using System.Xml;
 
 namespace Decos.Http.Signatures
 {
@@ -46,18 +45,23 @@ namespace Decos.Http.Signatures
 
         private static DateTimeOffset ParseCreated(string created)
         {
-            if (DateTimeOffset.TryParse(created, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out var dateTime))
-                return dateTime;
-
             if (long.TryParse(created, out var seconds))
                 return DateTimeOffset.FromUnixTimeSeconds(seconds);
+
+            if (DateTimeOffset.TryParse(created, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out var dateTime))
+                return dateTime;
 
             throw new FormatException($"The 'created' value is not a recognized date/time value. Value: \"{created}\"");
         }
 
         public override string ToString()
         {
-            throw new NotImplementedException();
+            var builder = new StringBuilder();
+            builder.AppendFormat("keyId=\"{0}\"", KeyId);
+            builder.AppendFormat(",nonce=\"{0}\"", Nonce);
+            builder.AppendFormat(",created=\"{0}\"", Timestamp.ToUnixTimeSeconds());
+            builder.AppendFormat(",signature=\"{0}\"", Convert.ToBase64String(Signature));
+            return builder.ToString();
         }
 
         private static Dictionary<string, string> Deserialize(string serializedString)

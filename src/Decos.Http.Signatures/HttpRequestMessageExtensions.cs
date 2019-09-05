@@ -27,7 +27,7 @@ namespace Decos.Http.Signatures
                 Timestamp = timestamp,
                 Signature = hash
             };
-            // Date header?
+
             request.Headers.Authorization = new AuthenticationHeaderValue(scheme,
                 param.ToString());
         }
