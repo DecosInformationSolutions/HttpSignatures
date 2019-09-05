@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace Decos.Http.Signatures.Tests
 {
-    public class TestKeyLookup : IKeyLookup
+    internal class TestKeyLookup : IKeyLookup
     {
         public const string ValidKeyId = "90694e5216a5f4db";
         public const string InvalidKeyId = "e2a24c1d71579ae0";

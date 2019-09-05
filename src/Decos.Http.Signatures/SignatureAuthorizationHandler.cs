@@ -5,26 +5,25 @@ using System.Threading.Tasks;
 
 namespace Decos.Http.Signatures
 {
-    public class HttpSignatureMessageHandler : DelegatingHandler
+    public class SignatureAuthorizationHandler : DelegatingHandler
     {
-        public HttpSignatureMessageHandler(string keyId, byte[] key)
+        public SignatureAuthorizationHandler(string keyId, byte[] key)
             : this(keyId, new HttpSignatureAlgorithm(key))
         {
         }
 
-        public HttpSignatureMessageHandler(string keyId, HttpSignatureAlgorithm algorithm)
+        public SignatureAuthorizationHandler(string keyId, HttpSignatureAlgorithm algorithm)
+            : this(keyId, algorithm, new HttpClientHandler())
         {
-            KeyId = keyId;
-            Algorithm = algorithm;
         }
 
-        public HttpSignatureMessageHandler(string keyId, byte[] key,
+        public SignatureAuthorizationHandler(string keyId, byte[] key,
             HttpMessageHandler innerHandler)
             : this(keyId, new HttpSignatureAlgorithm(key), innerHandler)
         {
         }
 
-        public HttpSignatureMessageHandler(string keyId, HttpSignatureAlgorithm algorithm,
+        public SignatureAuthorizationHandler(string keyId, HttpSignatureAlgorithm algorithm,
             HttpMessageHandler innerHandler)
             : base(innerHandler)
         {
