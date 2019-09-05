@@ -75,9 +75,6 @@ namespace Decos.Http.Signatures
             if (uri == null)
                 throw new ArgumentNullException(nameof(uri));
 
-            if (stream == null)
-                throw new ArgumentNullException(nameof(stream));
-
             if (string.IsNullOrEmpty(nonce))
                 throw new ArgumentException("A nonce must be specified.", nameof(nonce));
 
@@ -107,6 +104,9 @@ namespace Decos.Http.Signatures
             byte[] contentHash;
             using (var sha256 = SHA256.Create())
             {
+                if (stream == null)
+                    return sha256.ComputeHash(new byte[0]);
+
                 var offset = stream.Position;
                 if (stream.CanSeek)
                     stream.Seek(0, SeekOrigin.Begin);
