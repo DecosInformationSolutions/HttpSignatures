@@ -9,6 +9,11 @@ namespace Decos.Http.Signatures
     /// </summary>
     public class HttpSignatureAlgorithm
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="HttpSignatureAlgorithm"/> class with the
+        /// specified key.
+        /// </summary>
+        /// <param name="key">The key used to generate signatures.</param>
         public HttpSignatureAlgorithm(byte[] key)
             : this(key, new SystemClock())
         {
@@ -16,9 +21,10 @@ namespace Decos.Http.Signatures
 
         /// <summary>
         /// Initializes a new instance of the <see cref="HttpSignatureAlgorithm"/> class with the
-        /// specified key.
+        /// specified key and system clock mechanism.
         /// </summary>
         /// <param name="key">The key used to generate signatures.</param>
+        /// <param name="clock">A mechanism used to retrieve the current time.</param>
         public HttpSignatureAlgorithm(byte[] key, ISystemClock clock)
         {
             if (key is null)
@@ -35,12 +41,28 @@ namespace Decos.Http.Signatures
         }
 
         /// <summary>
-        /// Gets or sets the key used in the signature calculation.
+        /// Gets the key used in the signature calculation.
         /// </summary>
         public byte[] Key { get; }
 
+        /// <summary>
+        /// Gets a mechanism for retrieving the current time.
+        /// </summary>
         protected ISystemClock Clock { get; }
 
+        /// <summary>
+        /// Calculates a new signature for the specified parameters, using a new nonce and timestamp.
+        /// </summary>
+        /// <param name="method">The HTTP method of the message.</param>
+        /// <param name="uri">The request URI of the message.</param>
+        /// <param name="stream">A stream that contains the message body.</param>
+        /// <param name="nonce">
+        /// When this method returns, contains the nonce used to calculate the signature.
+        /// </param>
+        /// <param name="timestamp">
+        /// When this method returns, contains the point in time the signature was created.
+        /// </param>
+        /// <returns>A byte array that contains the calculated signature hash.</returns>
         public byte[] CalculateHash(string method, string uri, Stream stream,
             out string nonce, out DateTimeOffset timestamp)
         {
@@ -50,18 +72,17 @@ namespace Decos.Http.Signatures
         }
 
         /// <summary>
-        /// Calculates a new signature for the specified parameters.
+        /// Calculates a new signature for the specified parameters using the specified nonce and
+        /// timestamp.
         /// </summary>
-        /// <param name="message">The HTTP message to calculate a signature for.</param>
-        /// <param name="nonce">A unique value for the signature.</param>
-        /// <param name="timestamp">A timestamp for the signature.</param>
-        /// <returns>The new signature.</returns>
-        /// <exception cref="InvalidOperationException">
-        /// <see cref="Key"/>, <see cref="Algorithm"/> or <see cref="ContentAlgorithm"/> are not
-        /// specified.
-        /// </exception>
+        /// <param name="method">The HTTP method of the message.</param>
+        /// <param name="uri">The request URI of the message.</param>
+        /// <param name="stream">A stream that contains the message body.</param>
+        /// <param name="nonce">The nonce used to calculate the signature.</param>
+        /// <param name="timestamp">The point in time the signature was created.</param>
+        /// <returns>A byte array that contains the calculated signature hash.</returns>
         /// <exception cref="ArgumentNullException">
-        /// <paramref name="message"/> is <c>null</c>.
+        /// <paramref name="method"/> or <paramref name="uri"/> is <c>null</c>.
         /// </exception>
         /// <exception cref="ArgumentException">
         /// <paramref name="nonce"/> or <paramref name="timestamp"/> are not specified.
@@ -89,16 +110,25 @@ namespace Decos.Http.Signatures
         /// <summary>
         /// Calculates a new signature for the specified parameters.
         /// </summary>
-        /// <returns>A byte array that contains the hash.</returns>
+        /// <param name="signatureData">The data used in the signature.</param>
+        /// <returns>A byte array that contains the calculated signature hash.</returns>
         public virtual byte[] CalculateHash(SignatureData signatureData)
         {
             using (var hmac = new HMACSHA256(Key))
             {
-                var hashData = signatureData.GetRawData();
+                var hashData = signatureData.ToByteArray();
                 return hmac.ComputeHash(hashData);
             }
         }
 
+        /// <summary>
+        /// Calculates a general purpose hash of the stream's content.
+        /// </summary>
+        /// <param name="stream">
+        /// The stream whose content is used to calculate a hash. If seeking is supported, the stream
+        /// is reset to its original position when this method returns.
+        /// </param>
+        /// <returns>A byte array that contains the calculated hash.</returns>
         protected byte[] CalculateContentHash(Stream stream)
         {
             byte[] contentHash;
