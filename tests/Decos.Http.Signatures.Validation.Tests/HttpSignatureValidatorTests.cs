@@ -2,9 +2,11 @@
 using System.Threading.Tasks;
 
 using Decos.Http.Signatures.Tests;
+using Decos.Http.Signatures.Validation.AspNetCore;
 
 using FluentAssertions;
-
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 
@@ -62,7 +64,7 @@ namespace Decos.Http.Signatures.Validation.Tests
         [Fact]
         public async Task SignatureClientThrowsIfKeyCannotBeFound()
         {
-            var client = CreateClient();
+            var client = CreateValidator();
             var signature = GetTestParamsWithInvalidKey();
 
             Func<Task> task = () => client.ValidateAsync(signature, TestMethod, TestUri, new StringStream(""));
@@ -73,7 +75,7 @@ namespace Decos.Http.Signatures.Validation.Tests
         [Fact]
         public async Task SignatureClientCorrectlyValidatesIfSignatureIsValid()
         {
-            var client = CreateClient();
+            var client = CreateValidator();
             var signature = GetTestParams();
 
             var result = await client.ValidateAsync(signature, TestMethod, TestUri, new StringStream(""));
@@ -84,7 +86,7 @@ namespace Decos.Http.Signatures.Validation.Tests
         [Fact]
         public async Task SignatureClientCorrectlyValidatesIfTimestampIsOffByLessThanASecond()
         {
-            var client = CreateClient();
+            var client = CreateValidator();
             var signature = GetTestParams();
             signature.Timestamp += TimeSpan.FromMilliseconds(500);
 
@@ -96,7 +98,7 @@ namespace Decos.Http.Signatures.Validation.Tests
         [Fact]
         public async Task SignatureClientFailsValidationIfSignatureIsInvalid()
         {
-            var client = CreateClient();
+            var client = CreateValidator();
             var signature = GetTestParams();
             signature.Nonce = TestNonce2;
 
@@ -108,7 +110,7 @@ namespace Decos.Http.Signatures.Validation.Tests
         [Fact]
         public async Task SignatureClientFailsValidationIfTimestampIsIncorrect()
         {
-            var client = CreateClient();
+            var client = CreateValidator();
             var signature = GetTestParams();
             signature.Timestamp += TimeSpan.FromSeconds(5);
 
@@ -120,7 +122,7 @@ namespace Decos.Http.Signatures.Validation.Tests
         [Fact]
         public async Task SignatureClientFailsValidationIfSignatureIsExpired()
         {
-            var client = CreateClient();
+            var client = CreateValidator();
             var signature = GetExpiredTestParams();
 
             var result = await client.ValidateAsync(signature, TestMethod, TestUri, new StringStream(""));
@@ -131,7 +133,7 @@ namespace Decos.Http.Signatures.Validation.Tests
         [Fact]
         public async Task SignatureClientFailsValidationIfSignatureIsNotYetValid()
         {
-            var client = CreateClient();
+            var client = CreateValidator();
             var signature = GetNotYetValidTestParams();
 
             var result = await client.ValidateAsync(signature,
@@ -143,7 +145,7 @@ namespace Decos.Http.Signatures.Validation.Tests
         [Fact]
         public async Task SignatureClientFailsValidationIfNonceIsReused()
         {
-            var client = CreateClient();
+            var client = CreateValidator();
             var signature = GetTestParams();
 
             await client.ValidateAsync(signature, TestMethod, TestUri, new StringStream(""));
@@ -155,7 +157,7 @@ namespace Decos.Http.Signatures.Validation.Tests
         [Fact]
         public async Task SignatureClientCorrectlyValidatesTwoSignaturesInARow()
         {
-            var client = CreateClient();
+            var client = CreateValidator();
             var signature = GetTestParams();
             var signature2 = GetTestParams2();
 
@@ -169,7 +171,7 @@ namespace Decos.Http.Signatures.Validation.Tests
         [Fact]
         public async Task SignatureClientCorrectlyValidatesIfNonceIsExpired()
         {
-            var client = CreateClient();
+            var client = CreateValidator();
 
             var signature = GetTestParams();
             var result = await client.ValidateAsync(signature, TestMethod, TestUri, new StringStream(""));
@@ -238,7 +240,7 @@ namespace Decos.Http.Signatures.Validation.Tests
             };
         }
 
-        private HttpSignatureValidator CreateClient()
+        private HttpSignatureValidator CreateValidator()
         {
             _testClock = new TestClock();
             return new HttpSignatureValidator(
