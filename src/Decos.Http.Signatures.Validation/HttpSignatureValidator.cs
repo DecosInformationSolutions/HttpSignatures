@@ -59,7 +59,7 @@ namespace Decos.Http.Signatures.Validation
         /// <param name="algorithm">The signature to validate.</param>
         /// <returns>A value indicating the result of the validation.</returns>
         public virtual async Task<SignatureValidationResult> ValidateAsync(
-            SignatureParams signature, string method, string uri, Stream body)
+            HttpSignature signature, string method, string uri, Stream body)
         {
             var timeDiff = Clock.UtcNow - signature.Timestamp;
             if (timeDiff.Duration() > Options.ClockSkewMargin)
@@ -76,7 +76,7 @@ namespace Decos.Http.Signatures.Validation
             var algorithm = new HttpSignatureAlgorithm(key, Clock);
             var newHash = algorithm.CalculateHash(method, uri, body, signature.Nonce,
                 signature.Timestamp);
-            if (!newHash.HashEquals(signature.Signature))
+            if (!newHash.HashEquals(signature.Hash))
                 return SignatureValidationResult.Invalid;
 
             Cache.Set(entry, true, Options.NonceExpiration);

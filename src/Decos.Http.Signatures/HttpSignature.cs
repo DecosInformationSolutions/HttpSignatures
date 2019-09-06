@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 
 namespace Decos.Http.Signatures
 {
-    public class SignatureParams
+    public class HttpSignature
     {
         public string KeyId { get; set; }
 
@@ -14,9 +14,9 @@ namespace Decos.Http.Signatures
 
         public DateTimeOffset Timestamp { get; set; }
 
-        public byte[] Signature { get; set; }
+        public byte[] Hash { get; set; }
 
-        public static SignatureParams Parse(string serializedString)
+        public static HttpSignature Parse(string serializedString)
         {
             var items = Deserialize(serializedString);
 
@@ -34,12 +34,12 @@ namespace Decos.Http.Signatures
                 throw new FormatException("The 'signature' value is missing.");
             var signatureHash = Convert.FromBase64String(signature);
 
-            return new SignatureParams
+            return new HttpSignature
             {
                 KeyId = keyId,
                 Nonce = nonce,
                 Timestamp = timestamp,
-                Signature = signatureHash
+                Hash = signatureHash
             };
         }
 
@@ -60,7 +60,7 @@ namespace Decos.Http.Signatures
             builder.AppendFormat("keyId=\"{0}\"", KeyId);
             builder.AppendFormat(",nonce=\"{0}\"", Nonce);
             builder.AppendFormat(",created=\"{0}\"", Timestamp.ToUnixTimeSeconds());
-            builder.AppendFormat(",signature=\"{0}\"", Convert.ToBase64String(Signature));
+            builder.AppendFormat(",signature=\"{0}\"", Convert.ToBase64String(Hash));
             return builder.ToString();
         }
 

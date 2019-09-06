@@ -2,11 +2,9 @@
 using System.Threading.Tasks;
 
 using Decos.Http.Signatures.Tests;
-using Decos.Http.Signatures.Validation.AspNetCore;
 
 using FluentAssertions;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Internal;
+
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 
@@ -64,10 +62,10 @@ namespace Decos.Http.Signatures.Validation.Tests
         [Fact]
         public async Task SignatureClientThrowsIfKeyCannotBeFound()
         {
-            var client = CreateValidator();
-            var signature = GetTestParamsWithInvalidKey();
+            var validator = CreateValidator();
+            var signature = GetTestSignatureWithInvalidKey();
 
-            Func<Task> task = () => client.ValidateAsync(signature, TestMethod, TestUri, new StringStream(""));
+            Func<Task> task = () => validator.ValidateAsync(signature, TestMethod, TestUri, new StringStream(""));
 
             await task.Should().ThrowExactlyAsync<KeyNotFoundException>();
         }
@@ -75,10 +73,10 @@ namespace Decos.Http.Signatures.Validation.Tests
         [Fact]
         public async Task SignatureClientCorrectlyValidatesIfSignatureIsValid()
         {
-            var client = CreateValidator();
-            var signature = GetTestParams();
+            var validator = CreateValidator();
+            var signature = GetTestSignature();
 
-            var result = await client.ValidateAsync(signature, TestMethod, TestUri, new StringStream(""));
+            var result = await validator.ValidateAsync(signature, TestMethod, TestUri, new StringStream(""));
 
             result.Should().Be(SignatureValidationResult.OK);
         }
@@ -86,11 +84,11 @@ namespace Decos.Http.Signatures.Validation.Tests
         [Fact]
         public async Task SignatureClientCorrectlyValidatesIfTimestampIsOffByLessThanASecond()
         {
-            var client = CreateValidator();
-            var signature = GetTestParams();
+            var validator = CreateValidator();
+            var signature = GetTestSignature();
             signature.Timestamp += TimeSpan.FromMilliseconds(500);
 
-            var result = await client.ValidateAsync(signature, TestMethod, TestUri, new StringStream(""));
+            var result = await validator.ValidateAsync(signature, TestMethod, TestUri, new StringStream(""));
 
             result.Should().Be(SignatureValidationResult.OK);
         }
@@ -98,11 +96,11 @@ namespace Decos.Http.Signatures.Validation.Tests
         [Fact]
         public async Task SignatureClientFailsValidationIfSignatureIsInvalid()
         {
-            var client = CreateValidator();
-            var signature = GetTestParams();
+            var validator = CreateValidator();
+            var signature = GetTestSignature();
             signature.Nonce = TestNonce2;
 
-            var result = await client.ValidateAsync(signature, TestMethod, TestUri, new StringStream(""));
+            var result = await validator.ValidateAsync(signature, TestMethod, TestUri, new StringStream(""));
 
             result.Should().Be(SignatureValidationResult.Invalid);
         }
@@ -110,11 +108,11 @@ namespace Decos.Http.Signatures.Validation.Tests
         [Fact]
         public async Task SignatureClientFailsValidationIfTimestampIsIncorrect()
         {
-            var client = CreateValidator();
-            var signature = GetTestParams();
+            var validator = CreateValidator();
+            var signature = GetTestSignature();
             signature.Timestamp += TimeSpan.FromSeconds(5);
 
-            var result = await client.ValidateAsync(signature, TestMethod, TestUri, new StringStream(""));
+            var result = await validator.ValidateAsync(signature, TestMethod, TestUri, new StringStream(""));
 
             result.Should().Be(SignatureValidationResult.Invalid);
         }
@@ -122,10 +120,10 @@ namespace Decos.Http.Signatures.Validation.Tests
         [Fact]
         public async Task SignatureClientFailsValidationIfSignatureIsExpired()
         {
-            var client = CreateValidator();
-            var signature = GetExpiredTestParams();
+            var validator = CreateValidator();
+            var signature = GetExpiredTestSignature();
 
-            var result = await client.ValidateAsync(signature, TestMethod, TestUri, new StringStream(""));
+            var result = await validator.ValidateAsync(signature, TestMethod, TestUri, new StringStream(""));
 
             result.Should().Be(SignatureValidationResult.Expired);
         }
@@ -133,10 +131,10 @@ namespace Decos.Http.Signatures.Validation.Tests
         [Fact]
         public async Task SignatureClientFailsValidationIfSignatureIsNotYetValid()
         {
-            var client = CreateValidator();
-            var signature = GetNotYetValidTestParams();
+            var validator = CreateValidator();
+            var signature = GetNotYetValidTestSignature();
 
-            var result = await client.ValidateAsync(signature,
+            var result = await validator.ValidateAsync(signature,
                 TestMethod, TestUri, new StringStream(""));
 
             result.Should().Be(SignatureValidationResult.Expired);
@@ -145,11 +143,11 @@ namespace Decos.Http.Signatures.Validation.Tests
         [Fact]
         public async Task SignatureClientFailsValidationIfNonceIsReused()
         {
-            var client = CreateValidator();
-            var signature = GetTestParams();
+            var validator = CreateValidator();
+            var signature = GetTestSignature();
 
-            await client.ValidateAsync(signature, TestMethod, TestUri, new StringStream(""));
-            var result = await client.ValidateAsync(signature, TestMethod, TestUri, new StringStream(""));
+            await validator.ValidateAsync(signature, TestMethod, TestUri, new StringStream(""));
+            var result = await validator.ValidateAsync(signature, TestMethod, TestUri, new StringStream(""));
 
             result.Should().Be(SignatureValidationResult.Duplicate);
         }
@@ -157,12 +155,12 @@ namespace Decos.Http.Signatures.Validation.Tests
         [Fact]
         public async Task SignatureClientCorrectlyValidatesTwoSignaturesInARow()
         {
-            var client = CreateValidator();
-            var signature = GetTestParams();
-            var signature2 = GetTestParams2();
+            var validator = CreateValidator();
+            var signature = GetTestSignature();
+            var signature2 = GetTestSignature2();
 
-            await client.ValidateAsync(signature, TestMethod, TestUri, new StringStream(""));
-            var result = await client.ValidateAsync(signature2,
+            await validator.ValidateAsync(signature, TestMethod, TestUri, new StringStream(""));
+            var result = await validator.ValidateAsync(signature2,
                 TestMethod, TestUri, new StringStream(""));
 
             result.Should().Be(SignatureValidationResult.OK);
@@ -171,72 +169,72 @@ namespace Decos.Http.Signatures.Validation.Tests
         [Fact]
         public async Task SignatureClientCorrectlyValidatesIfNonceIsExpired()
         {
-            var client = CreateValidator();
+            var validator = CreateValidator();
 
-            var signature = GetTestParams();
-            var result = await client.ValidateAsync(signature, TestMethod, TestUri, new StringStream(""));
+            var signature = GetTestSignature();
+            var result = await validator.ValidateAsync(signature, TestMethod, TestUri, new StringStream(""));
             result.Should().Be(SignatureValidationResult.OK);
 
             _testClock.UtcNow += TimeSpan.FromHours(1);
-            var signature2 = GetTestParams();
-            var result2 = await client.ValidateAsync(signature2, TestMethod,
+            var signature2 = GetTestSignature();
+            var result2 = await validator.ValidateAsync(signature2, TestMethod,
                 TestUri, new StringStream(""));
 
             result2.Should().Be(SignatureValidationResult.OK);
         }
 
-        private SignatureParams GetTestParams()
+        private HttpSignature GetTestSignature()
         {
-            return new SignatureParams
+            return new HttpSignature
             {
                 KeyId = TestKeyLookup.ValidKeyId,
                 Nonce = TestNonce,
                 Timestamp = TestClock.TestValue,
-                Signature = s_testMessageDefaultSignature
+                Hash = s_testMessageDefaultSignature
             };
         }
 
-        private SignatureParams GetTestParams2()
+        private HttpSignature GetTestSignature2()
         {
-            return new SignatureParams
+            return new HttpSignature
             {
                 KeyId = TestKeyLookup.ValidKeyId,
                 Nonce = TestNonce2,
                 Timestamp = TestClock.TestValue,
-                Signature = s_testMessageDefaultSignature2
+                Hash = s_testMessageDefaultSignature2
             };
         }
 
-        private SignatureParams GetExpiredTestParams()
+        private HttpSignature GetExpiredTestSignature()
         {
-            return new SignatureParams
+            return new HttpSignature
             {
                 KeyId = TestKeyLookup.ValidKeyId,
                 Nonce = TestNonce,
                 Timestamp = s_expiredTimestamp,
-                Signature = s_expiredSignature
+                Hash = s_expiredSignature
             };
         }
 
-        private SignatureParams GetNotYetValidTestParams()
+        private HttpSignature GetNotYetValidTestSignature()
         {
-            return new SignatureParams
+            return new HttpSignature
             {
                 KeyId = TestKeyLookup.ValidKeyId,
                 Nonce = TestNonce,
                 Timestamp = s_notYetValidTimestamp,
-                Signature = s_notYetValidSignature
+                Hash = s_notYetValidSignature
             };
         }
 
-        private SignatureParams GetTestParamsWithInvalidKey()
+        private HttpSignature GetTestSignatureWithInvalidKey()
         {
-            return new SignatureParams
+            return new HttpSignature
             {
                 KeyId = TestKeyLookup.InvalidKeyId,
                 Nonce = TestNonce,
                 Timestamp = TestClock.TestValue,
-                Signature = s_testMessageDefaultSignature
+                Hash = s_testMessageDefaultSignature
             };
         }
 

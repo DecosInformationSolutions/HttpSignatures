@@ -11,7 +11,7 @@ namespace Decos.Http.Signatures.Validation.AspNetCore
     {
         public static async Task<SignatureValidationResult> ValidateAsync(
             this HttpSignatureValidator validator, HttpRequest request,
-            SignatureParams signature)
+            HttpSignature signature)
         {
             // First, we try the raw request URL (if available)
             var requestFeature = request.HttpContext.Features.Get<IHttpRequestFeature>();

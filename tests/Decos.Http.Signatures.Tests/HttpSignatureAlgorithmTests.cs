@@ -31,48 +31,48 @@ namespace Decos.Http.Signatures.Tests
         [Fact]
         public void SignatureCalculationRequiresMethod()
         {
-            var signature = GetTestAlgorithm();
+            var algorithm = GetTestAlgorithm();
 
-            Action task = () => signature.CalculateHash(null, TestUri, new StringStream(""), TestNonce, TestClock.TestValue);
+            Action task = () => algorithm.CalculateHash(null, TestUri, new StringStream(""), TestNonce, TestClock.TestValue);
             task.Should().ThrowExactly<ArgumentNullException>();
         }
 
         [Fact]
         public void SignatureCalculationRequiresUri()
         {
-            var signature = GetTestAlgorithm();
+            var algorithm = GetTestAlgorithm();
 
-            Action task = () => signature.CalculateHash(TestMethod, null, new StringStream(""), TestNonce, TestClock.TestValue);
+            Action task = () => algorithm.CalculateHash(TestMethod, null, new StringStream(""), TestNonce, TestClock.TestValue);
             task.Should().ThrowExactly<ArgumentNullException>();
         }
 
         [Fact]
         public void SignatureCalculationRequiresNonce()
         {
-            var signature = GetTestAlgorithm();
+            var algorithm = GetTestAlgorithm();
 
-            Action task = () => signature.CalculateHash(TestMethod, TestUri, new StringStream(""), null, TestClock.TestValue);
+            Action task = () => algorithm.CalculateHash(TestMethod, TestUri, new StringStream(""), null, TestClock.TestValue);
             task.Should().ThrowExactly<ArgumentException>();
         }
 
         [Fact]
         public void SignatureCalculationRequiresTimestamp()
         {
-            var signature = GetTestAlgorithm();
+            var algorithm = GetTestAlgorithm();
 
-            Action task = () => signature.CalculateHash(TestMethod, TestUri, new StringStream(""), TestNonce, default);
+            Action task = () => algorithm.CalculateHash(TestMethod, TestUri, new StringStream(""), TestNonce, default);
             task.Should().ThrowExactly<ArgumentException>();
         }
 
         [Fact]
         public void SignatureCalculationRewindsBodyStream()
         {
-            var signature = GetTestAlgorithm();
+            var algorithm = GetTestAlgorithm();
             var stream = new StringStream(new string(' ', 100));
 
             try
             {
-                signature.CalculateHash(TestMethod, TestUri, stream, TestNonce, TestClock.TestValue);
+                algorithm.CalculateHash(TestMethod, TestUri, stream, TestNonce, TestClock.TestValue);
             }
             catch (NotImplementedException) { }
 
@@ -83,13 +83,13 @@ namespace Decos.Http.Signatures.Tests
         public void SignatureCalculationResetsBodyStreamToOriginalPosition()
         {
             const int Offset = 50;
-            var signature = GetTestAlgorithm();
+            var algorithm = GetTestAlgorithm();
             var stream = new StringStream(new string(' ', 100));
             stream.Seek(Offset, SeekOrigin.Begin);
 
             try
             {
-                signature.CalculateHash(TestMethod, TestUri, stream, TestNonce, TestClock.TestValue);
+                algorithm.CalculateHash(TestMethod, TestUri, stream, TestNonce, TestClock.TestValue);
             }
             catch (NotImplementedException) { }
 
@@ -99,95 +99,95 @@ namespace Decos.Http.Signatures.Tests
         [Fact]
         public void CalculatedSignatureIsConsistent()
         {
-            var signature = GetTestAlgorithm();
+            var algorithm = GetTestAlgorithm();
             var expected = new byte[] {
                 105, 165, 255, 192, 146, 98, 37, 143,
                 37, 194, 192, 246, 115, 7, 11, 253,
                 19, 145, 211, 31, 241, 77, 58, 25,
                 6, 41, 19, 0, 223, 136, 62, 80 };
 
-            var hash = signature.CalculateHash(TestMethod, TestUri, new StringStream(""), TestNonce, TestClock.TestValue);
+            var hash = algorithm.CalculateHash(TestMethod, TestUri, new StringStream(""), TestNonce, TestClock.TestValue);
             hash.Should().Equal(expected);
         }
 
         [Fact]
         public void CalculatedSignatureIsDifferentForDifferentHttpMethods()
         {
-            var signature = GetTestAlgorithm();
+            var algorithm = GetTestAlgorithm();
 
-            var hash1 = signature.CalculateHash("GET", TestUri, new StringStream(""), TestNonce, TestClock.TestValue);
-            var hash2 = signature.CalculateHash("POST", TestUri, new StringStream(""), TestNonce, TestClock.TestValue);
+            var hash1 = algorithm.CalculateHash("GET", TestUri, new StringStream(""), TestNonce, TestClock.TestValue);
+            var hash2 = algorithm.CalculateHash("POST", TestUri, new StringStream(""), TestNonce, TestClock.TestValue);
             hash1.Should().NotEqual(hash2);
         }
 
         [Fact]
         public void CalculatedSignatureIsTheSameWhenHttpMethodCasingIsDifferent()
         {
-            var signature = GetTestAlgorithm();
+            var algorithm = GetTestAlgorithm();
 
-            var hash1 = signature.CalculateHash("GET", TestUri, new StringStream(""), TestNonce, TestClock.TestValue);
-            var hash2 = signature.CalculateHash("get", TestUri, new StringStream(""), TestNonce, TestClock.TestValue);
+            var hash1 = algorithm.CalculateHash("GET", TestUri, new StringStream(""), TestNonce, TestClock.TestValue);
+            var hash2 = algorithm.CalculateHash("get", TestUri, new StringStream(""), TestNonce, TestClock.TestValue);
             hash1.Should().Equal(hash2);
         }
 
         [Fact]
         public void CalculatedSignatureIsDifferentForDifferentUrls()
         {
-            var signature = GetTestAlgorithm();
+            var algorithm = GetTestAlgorithm();
 
-            var hash1 = signature.CalculateHash(TestMethod, "", new StringStream("http://localhost:5000/?test=1"), TestNonce, TestClock.TestValue);
-            var hash2 = signature.CalculateHash(TestMethod, "", new StringStream("http://localhost:5000/?test=2"), TestNonce, TestClock.TestValue);
+            var hash1 = algorithm.CalculateHash(TestMethod, "", new StringStream("http://localhost:5000/?test=1"), TestNonce, TestClock.TestValue);
+            var hash2 = algorithm.CalculateHash(TestMethod, "", new StringStream("http://localhost:5000/?test=2"), TestNonce, TestClock.TestValue);
             hash1.Should().NotEqual(hash2);
         }
 
         [Fact]
         public void CalculatedSignatureIsDifferentForDifferentNonces()
         {
-            var signature = GetTestAlgorithm();
+            var algorithm = GetTestAlgorithm();
 
-            var hash1 = signature.CalculateHash(TestMethod, TestUri, new StringStream(""), TestNonce, TestClock.TestValue);
-            var hash2 = signature.CalculateHash(TestMethod, TestUri, new StringStream(""), TestNonce2, TestClock.TestValue);
+            var hash1 = algorithm.CalculateHash(TestMethod, TestUri, new StringStream(""), TestNonce, TestClock.TestValue);
+            var hash2 = algorithm.CalculateHash(TestMethod, TestUri, new StringStream(""), TestNonce2, TestClock.TestValue);
             hash1.Should().NotEqual(hash2);
         }
 
         [Fact]
         public void CalculatedSignatureIsDifferentForDifferentTimestamps()
         {
-            var signature = GetTestAlgorithm();
+            var algorithm = GetTestAlgorithm();
 
-            var hash1 = signature.CalculateHash(TestMethod, TestUri, new StringStream(""), TestNonce, TestClock.TestValue);
-            var hash2 = signature.CalculateHash(TestMethod, TestUri, new StringStream(""), TestNonce, TestClock.TestValue.AddMinutes(5));
+            var hash1 = algorithm.CalculateHash(TestMethod, TestUri, new StringStream(""), TestNonce, TestClock.TestValue);
+            var hash2 = algorithm.CalculateHash(TestMethod, TestUri, new StringStream(""), TestNonce, TestClock.TestValue.AddMinutes(5));
             hash1.Should().NotEqual(hash2);
         }
 
         [Fact]
         public void CalculatedSignatureIsTheSameWhenTimestampsDifferOnlyInMilliseconds()
         {
-            var signature = GetTestAlgorithm();
+            var algorithm = GetTestAlgorithm();
 
-            var hash1 = signature.CalculateHash(TestMethod, TestUri, new StringStream(""), TestNonce, TestClock.TestValue);
-            var hash2 = signature.CalculateHash(TestMethod, TestUri, new StringStream(""), TestNonce, TestClock.TestValue.AddMilliseconds(200));
+            var hash1 = algorithm.CalculateHash(TestMethod, TestUri, new StringStream(""), TestNonce, TestClock.TestValue);
+            var hash2 = algorithm.CalculateHash(TestMethod, TestUri, new StringStream(""), TestNonce, TestClock.TestValue.AddMilliseconds(200));
             hash1.Should().Equal(hash2);
         }
 
         [Fact]
         public void CalculatedSignatureIsDifferentForDifferentBodies()
         {
-            var signature = GetTestAlgorithm();
+            var algorithm = GetTestAlgorithm();
 
-            var hash1 = signature.CalculateHash(TestMethod, TestUri, new StringStream("{ \"test\": 1}"), TestNonce, TestClock.TestValue);
-            var hash2 = signature.CalculateHash(TestMethod, TestUri, new StringStream("{ \"test\": 2}"), TestNonce, TestClock.TestValue);
+            var hash1 = algorithm.CalculateHash(TestMethod, TestUri, new StringStream("{ \"test\": 1}"), TestNonce, TestClock.TestValue);
+            var hash2 = algorithm.CalculateHash(TestMethod, TestUri, new StringStream("{ \"test\": 2}"), TestNonce, TestClock.TestValue);
             hash1.Should().NotEqual(hash2);
         }
 
         [Fact]
         public void CalculatedSignatureIsDifferentForDifferentKeys()
         {
-            var signature1 = new HttpSignatureAlgorithm(TestKeyConstants.TestKey);
-            var signature2 = new HttpSignatureAlgorithm(TestKeyConstants.TestKey2);
+            var algorithm1 = new HttpSignatureAlgorithm(TestKeyConstants.TestKey);
+            var algorithm2 = new HttpSignatureAlgorithm(TestKeyConstants.TestKey2);
 
-            var hash1 = signature1.CalculateHash(TestMethod, TestUri, new StringStream(""), TestNonce, TestClock.TestValue);
-            var hash2 = signature2.CalculateHash(TestMethod, TestUri, new StringStream(""), TestNonce, TestClock.TestValue);
+            var hash1 = algorithm1.CalculateHash(TestMethod, TestUri, new StringStream(""), TestNonce, TestClock.TestValue);
+            var hash2 = algorithm2.CalculateHash(TestMethod, TestUri, new StringStream(""), TestNonce, TestClock.TestValue);
             hash1.Should().NotEqual(hash2);
         }
 

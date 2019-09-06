@@ -24,11 +24,11 @@ namespace Decos.Http.Signatures.Tests
 
             request.Headers.Authorization.Should().NotBeNull();
             request.Headers.Authorization.Parameter.Should().NotBeNull();
-            var param = SignatureParams.Parse(request.Headers.Authorization.Parameter);
+            var param = HttpSignature.Parse(request.Headers.Authorization.Parameter);
             param.KeyId.Should().Be(TestKeyConstants.ValidKeyId);
             param.Nonce.Should().NotBeNull();
             param.Timestamp.Should().Be(TestClock.TestValue);
-            param.Signature.Should().NotBeEmpty();
+            param.Hash.Should().NotBeEmpty();
         }
     }
 }

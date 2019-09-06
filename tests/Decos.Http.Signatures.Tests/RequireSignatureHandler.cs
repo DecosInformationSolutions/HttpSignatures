@@ -17,10 +17,10 @@ namespace Decos.Http.Signatures.Tests
         {
             request.Headers.Authorization.Should().NotBeNull();
             request.Headers.Authorization.Parameter.Should().NotBeNull();
-            var param = SignatureParams.Parse(request.Headers.Authorization.Parameter);
+            var param = HttpSignature.Parse(request.Headers.Authorization.Parameter);
             param.KeyId.Should().NotBeNull();
             param.Nonce.Should().NotBeNull();
-            param.Signature.Should().NotBeEmpty();
+            param.Hash.Should().NotBeEmpty();
 
             return Task.FromResult(new HttpResponseMessage
             {

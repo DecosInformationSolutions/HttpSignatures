@@ -153,47 +153,47 @@ namespace Decos.Http.Signatures.Validation.Tests
             response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
         }
 
-        private SignatureParams GetTestParams()
+        private HttpSignature GetTestParams()
         {
-            return new SignatureParams
+            return new HttpSignature
             {
                 KeyId = TestKeyLookup.ValidKeyId,
                 Nonce = TestNonce,
                 Timestamp = TestClock.TestValue,
-                Signature = s_testMessageDefaultSignature
+                Hash = s_testMessageDefaultSignature
             };
         }
 
-        private SignatureParams GetInvalidTestParams()
+        private HttpSignature GetInvalidTestParams()
         {
-            return new SignatureParams
+            return new HttpSignature
             {
                 KeyId = TestKeyLookup.ValidKeyId,
                 Nonce = TestNonce,
                 Timestamp = TestClock.TestValue,
-                Signature = new byte[0]
+                Hash = new byte[0]
             };
         }
 
-        private SignatureParams GetExpiredTestParams()
+        private HttpSignature GetExpiredTestParams()
         {
-            return new SignatureParams
+            return new HttpSignature
             {
                 KeyId = TestKeyLookup.ValidKeyId,
                 Nonce = TestNonce,
                 Timestamp = s_expiredTimestamp,
-                Signature = s_expiredSignature
+                Hash = s_expiredSignature
             };
         }
 
-        private SignatureParams GetNotYetValidTestParams()
+        private HttpSignature GetNotYetValidTestParams()
         {
-            return new SignatureParams
+            return new HttpSignature
             {
                 KeyId = TestKeyLookup.ValidKeyId,
                 Nonce = TestNonce,
                 Timestamp = s_notYetValidTimestamp,
-                Signature = s_notYetValidSignature
+                Hash = s_notYetValidSignature
             };
         }
 
@@ -240,7 +240,7 @@ namespace Decos.Http.Signatures.Validation.Tests
             return new TestServer(hostBuilder);
         }
 
-        private async Task<HttpResponseMessage> SendAsync(TestServer server, string method, string uri, SignatureParams signature = null)
+        private async Task<HttpResponseMessage> SendAsync(TestServer server, string method, string uri, HttpSignature signature = null)
         {
             var client = server.CreateClient();
             var request = new HttpRequestMessage

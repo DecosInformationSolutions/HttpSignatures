@@ -20,12 +20,12 @@ namespace Decos.Http.Signatures
             var hash = signatureAlgorithm.CalculateHash(request.Method.ToString(),
                 request.RequestUri.OriginalString, stream, out var nonce, out var timestamp);
 
-            var param = new SignatureParams
+            var param = new HttpSignature
             {
                 KeyId = keyId,
                 Nonce = nonce,
                 Timestamp = timestamp,
-                Signature = hash
+                Hash = hash
             };
 
             request.Headers.Authorization = new AuthenticationHeaderValue(scheme,

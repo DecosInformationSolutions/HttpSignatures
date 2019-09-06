@@ -36,7 +36,7 @@ namespace Decos.Http.Signatures.Validation.AspNetCore
                 return AuthenticateResult.NoResult();
 
             authValue = authValue.Substring(Options.AuthenticationScheme.Length).TrimStart();
-            var signature = SignatureParams.Parse(authValue);
+            var signature = HttpSignature.Parse(authValue);
             var result = await Validator.ValidateAsync(Request, signature);
             switch (result)
             {
@@ -71,7 +71,7 @@ namespace Decos.Http.Signatures.Validation.AspNetCore
             return base.HandleChallengeAsync(properties);
         }
 
-        protected virtual AuthenticationTicket TicketFor(SignatureParams signature)
+        protected virtual AuthenticationTicket TicketFor(HttpSignature signature)
         {
             var identity = new ClaimsIdentity(Options.AuthenticationScheme);
             identity.AddClaim(new Claim(identity.NameClaimType, signature.KeyId));

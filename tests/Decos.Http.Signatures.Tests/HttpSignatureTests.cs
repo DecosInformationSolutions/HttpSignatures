@@ -7,7 +7,7 @@ using Xunit;
 
 namespace Decos.Http.Signatures.Tests
 {
-    public class SignatureParamsTests
+    public class HttpSignatureTests
     {
         [Fact]
         public void KeyIdCanBeParsed()
@@ -15,7 +15,7 @@ namespace Decos.Http.Signatures.Tests
             const string keyId = "test";
             const string serializedString = "keyId=" + keyId + ",nonce=test,created=1,signature=\"OSQPsZ+PegY=\"";
 
-            var param = SignatureParams.Parse(serializedString);
+            var param = HttpSignature.Parse(serializedString);
 
             param.KeyId.Should().Be(keyId);
         }
@@ -26,7 +26,7 @@ namespace Decos.Http.Signatures.Tests
             const string keyId = "test";
             const string serializedString = "KEYID=" + keyId + ",nonce=test,created=1,signature=\"OSQPsZ+PegY=\"";
 
-            var param = SignatureParams.Parse(serializedString);
+            var param = HttpSignature.Parse(serializedString);
 
             param.KeyId.Should().Be(keyId);
         }
@@ -37,7 +37,7 @@ namespace Decos.Http.Signatures.Tests
             const string keyId = "te,st";
             const string serializedString = "keyId=\"" + keyId + "\",nonce=test,created=1,signature=\"OSQPsZ+PegY=\"";
 
-            var param = SignatureParams.Parse(serializedString);
+            var param = HttpSignature.Parse(serializedString);
 
             param.KeyId.Should().Be(keyId);
         }
@@ -48,7 +48,7 @@ namespace Decos.Http.Signatures.Tests
             const string nonce = "99e3006e-b846-4fe6-9572-6b5e2031773f";
             const string serializedString = "keyId=\"test\",nonce=\"" + nonce + "\",created=1,signature=\"OSQPsZ+PegY=\"";
 
-            var param = SignatureParams.Parse(serializedString);
+            var param = HttpSignature.Parse(serializedString);
 
             param.Nonce.Should().Be(nonce);
         }
@@ -59,7 +59,7 @@ namespace Decos.Http.Signatures.Tests
             var timestamp = TestClock.TestValue;
             var serializedString = "keyId=test,nonce=test,created=\"" + timestamp.ToString("s", CultureInfo.InvariantCulture) + "\",signature=\"OSQPsZ+PegY=\"";
 
-            var param = SignatureParams.Parse(serializedString);
+            var param = HttpSignature.Parse(serializedString);
 
             param.Timestamp.Should().Be(timestamp);
         }
@@ -70,7 +70,7 @@ namespace Decos.Http.Signatures.Tests
             var timestamp = TestClock.TestValue;
             var serializedString = "keyId=test,nonce=test,created=\"" + timestamp.ToUnixTimeSeconds().ToString() + "\",signature=\"OSQPsZ+PegY=\"";
 
-            var param = SignatureParams.Parse(serializedString);
+            var param = HttpSignature.Parse(serializedString);
 
             param.Timestamp.Should().Be(timestamp);
         }
@@ -80,7 +80,7 @@ namespace Decos.Http.Signatures.Tests
         {
             var serializedString = "keyId=test,nonce=test,created=\"undefined\",signature=\"OSQPsZ+PegY=\"";
 
-            Action parse = () => SignatureParams.Parse(serializedString);
+            Action parse = () => HttpSignature.Parse(serializedString);
 
             parse.Should().Throw<FormatException>();
         }
@@ -90,7 +90,7 @@ namespace Decos.Http.Signatures.Tests
         {
             var serializedString = "nonce=test,created=1,signature=\"OSQPsZ+PegY=\"";
 
-            Action parse = () => SignatureParams.Parse(serializedString);
+            Action parse = () => HttpSignature.Parse(serializedString);
 
             parse.Should().Throw<FormatException>();
         }
@@ -100,7 +100,7 @@ namespace Decos.Http.Signatures.Tests
         {
             var serializedString = "keyId=test,created=1,signature=\"OSQPsZ+PegY=\"";
 
-            Action parse = () => SignatureParams.Parse(serializedString);
+            Action parse = () => HttpSignature.Parse(serializedString);
 
             parse.Should().Throw<FormatException>();
         }
@@ -110,7 +110,7 @@ namespace Decos.Http.Signatures.Tests
         {
             var serializedString = "keyId=test,nonce=test,signature=\"OSQPsZ+PegY=\"";
 
-            Action parse = () => SignatureParams.Parse(serializedString);
+            Action parse = () => HttpSignature.Parse(serializedString);
 
             parse.Should().Throw<FormatException>();
         }
@@ -120,7 +120,7 @@ namespace Decos.Http.Signatures.Tests
         {
             var serializedString = "keyId=test,nonce=test,created=1";
 
-            Action parse = () => SignatureParams.Parse(serializedString);
+            Action parse = () => HttpSignature.Parse(serializedString);
 
             parse.Should().Throw<FormatException>();
         }
@@ -131,9 +131,9 @@ namespace Decos.Http.Signatures.Tests
             var hash = new byte[8] { 57, 36, 15, 177, 159, 143, 122, 6 };
             const string serializedString = "keyId=\"test\",nonce=test,created=1,signature=\"OSQPsZ+PegY=\"";
 
-            var param = SignatureParams.Parse(serializedString);
+            var param = HttpSignature.Parse(serializedString);
 
-            param.Signature.Should().Equal(hash);
+            param.Hash.Should().Equal(hash);
         }
 
         [Fact]
@@ -175,7 +175,7 @@ namespace Decos.Http.Signatures.Tests
                 41, 113, 63, 141, 224, 4, 117, 67,
                 212, 79, 228, 14, 84, 228, 190, 198 };
             var param = GetRandomParams();
-            param.Signature = hash;
+            param.Hash = hash;
 
             param.ToString().Should().Contain("signature=\"" + Convert.ToBase64String(hash) + "\"");
         }
@@ -185,22 +185,22 @@ namespace Decos.Http.Signatures.Tests
         {
             var expected = GetRandomParams();
 
-            var actual = SignatureParams.Parse(expected.ToString());
+            var actual = HttpSignature.Parse(expected.ToString());
 
             actual.KeyId.Should().Be(expected.KeyId);
             actual.Nonce.Should().Be(expected.Nonce);
             actual.Timestamp.Should().BeCloseTo(expected.Timestamp, TimeSpan.FromSeconds(1));
-            actual.Signature.Should().Equal(expected.Signature);
+            actual.Hash.Should().Equal(expected.Hash);
         }
 
-        private SignatureParams GetRandomParams()
+        private HttpSignature GetRandomParams()
         {
-            return new SignatureParams
+            return new HttpSignature
             {
                 KeyId = Guid.NewGuid().ToString(),
                 Nonce = Guid.NewGuid().ToString(),
                 Timestamp = DateTimeOffset.UtcNow,
-                Signature = Guid.NewGuid().ToByteArray()
+                Hash = Guid.NewGuid().ToByteArray()
             };
         }
     }
