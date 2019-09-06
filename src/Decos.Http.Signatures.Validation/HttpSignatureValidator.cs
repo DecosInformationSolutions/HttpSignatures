@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Threading.Tasks;
 
 using Microsoft.Extensions.Caching.Memory;
@@ -53,42 +54,33 @@ namespace Decos.Http.Signatures.Validation
         protected SignatureOptions Options { get; }
 
         /// <summary>
-        /// Creates a new <see cref="HttpSignatureAlgorithm"/> object for validating a signature
-        /// using the specified key identifier.
+        /// Determines whether the signature is valid for the specified message.
         /// </summary>
-        /// <param name="keyId">
-        /// An identifier for the key used to calculate or validate the signature.
-        /// </param>
-        /// <returns>A task that returns a new <see cref="HttpSignatureAlgorithm"/>.</returns>
-        public virtual async Task<HttpSignatureAlgorithm> CreateAsync(string keyId)
+        /// <param name="algorithm">The signature to validate.</param>
+        /// <returns>A value indicating the result of the validation.</returns>
+        public virtual async Task<SignatureValidationResult> ValidateAsync(
+            SignatureParams signature, string method, string uri, Stream body)
         {
-            var hasKey = await KeyLookup.TryGetKeyAsync(keyId, out var key);
+            var timeDiff = Clock.UtcNow - signature.Timestamp;
+            if (timeDiff.Duration() > Options.ClockSkewMargin)
+                return SignatureValidationResult.Expired;
+
+            var entry = new NonceCacheEntry(signature.Nonce);
+            if (Cache.TryGetValue(entry, out _))
+                return SignatureValidationResult.Duplicate;
+
+            var hasKey = await KeyLookup.TryGetKeyAsync(signature.KeyId, out var key);
             if (!hasKey)
-                throw KeyNotFoundException.WithId(keyId);
+                throw KeyNotFoundException.WithId(signature.KeyId);
 
-            return new HttpSignatureAlgorithm(key, Clock);
+            var algorithm = new HttpSignatureAlgorithm(key, Clock);
+            var newHash = algorithm.CalculateHash(method, uri, body, signature.Nonce,
+                signature.Timestamp);
+            if (!newHash.HashEquals(signature.Signature))
+                return SignatureValidationResult.Invalid;
+
+            Cache.Set(entry, true, Options.NonceExpiration);
+            return SignatureValidationResult.OK;
         }
-
-        ///// <summary>
-        ///// Determines whether the signature is valid for the specified message.
-        ///// </summary>
-        ///// <param name="signature">The signature to validate.</param>
-        ///// <returns>A value indicating the result of the validation.</returns>
-        //public virtual SignatureValidationResult Validate(HttpSignatureAlgorithm signature,
-        //    SignatureParams signatureParams)
-        //{
-        //    var timeDiff = Clock.UtcNow - timestamp;
-        //    if (timeDiff.Duration() > Options.ClockSkewMargin)
-        //        return SignatureValidationResult.Expired;
-
-        // var entry = new NonceCacheEntry(nonce); if (Cache.TryGetValue(entry, out _)) return
-        // SignatureValidationResult.Duplicate;
-
-        // var newHash = signature.Calculate(message, nonce, timestamp); if
-        // (!newHash.HashEquals(signature.Hash)) return SignatureValidationResult.Invalid;
-
-        //    Cache.Set(entry, true, Options.NonceExpiration);
-        //    return SignatureValidationResult.OK;
-        //}
     }
 }

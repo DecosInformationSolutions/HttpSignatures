@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
+
 using Decos.Http.Signatures.Tests;
+
 using FluentAssertions;
 
 using Microsoft.Extensions.Caching.Memory;
@@ -14,247 +16,227 @@ namespace Decos.Http.Signatures.Validation.Tests
     {
         private const string TestNonce = "f62c6394-d193-45f1-9703-feaa14678728";
         private const string TestNonce2 = "4175d1e5-93c1-427e-8bab-85f8f1e01fde";
+        private const string TestMethod = "GET";
+        private const string TestUri = "http://localhost:5000/api/test/1?value=2011-12-20T12:13:21Z";
 
-        private static readonly byte[] s_testMessageDefaultSignature = new byte[] {
-            169, 151, 63, 27, 156, 37, 194, 103,
-            58, 126, 68, 45, 248, 145, 70, 96,
-            243, 151, 59, 16, 126, 157, 183, 130,
-            198, 28, 126, 109, 50, 76, 111, 129 };
+        private static readonly byte[] s_testMessageDefaultSignature = new byte[]
+        {
+            0xD2, 0x0A, 0xFD, 0x3C, 0xD9, 0x6B, 0xAB, 0x98,
+            0x2A, 0x4C, 0xFF, 0x6D, 0x47, 0x0A, 0x76, 0x32,
+            0x01, 0x93, 0xD8, 0x5D, 0x31, 0xDB, 0x99, 0xFB,
+            0x79, 0x47, 0x4D, 0x12, 0x00, 0x89, 0xC1, 0x38,
+        };
 
-        private static readonly byte[] s_testMessageDefaultSignature2 = new byte[] {
-            176, 58, 25, 40, 92, 187, 217, 196,
-            42, 12, 207, 48, 87, 97, 107, 57,
-            55, 154, 75, 63, 138, 74, 29, 220,
-            187, 92, 202, 157, 91, 128, 214, 248 };
+        private static readonly byte[] s_testMessageDefaultSignature2 = new byte[]
+        {
+            0x8A, 0xA6, 0xDB, 0x52, 0x49, 0x6B, 0x14, 0xDF,
+            0xC2, 0x80, 0x41, 0xA3, 0x9B, 0x05, 0x46, 0x0F,
+            0xE5, 0xDD, 0x9D, 0xE2, 0x95, 0x52, 0x8C, 0x29,
+            0x94, 0xAE, 0x8B, 0x1A, 0xC8, 0x06, 0x28, 0x77,
+        };
 
         private static readonly DateTimeOffset s_notYetValidTimestamp
             = TestClock.TestValue.AddHours(1.5);
 
         private static readonly byte[] s_notYetValidSignature = new byte[]
         {
-            158, 159, 58, 130, 49, 7, 73, 98,
-            14, 211, 190, 253, 86, 140, 88, 175,
-            41, 1, 151, 45, 153, 101, 228, 171,
-            251, 142, 24, 201, 218, 89, 75, 51
+            0x1A, 0xC7, 0x44, 0x1C, 0x92, 0x46, 0x0B, 0x01,
+            0xA1, 0x05, 0xDE, 0x08, 0x66, 0x61, 0xF5, 0xC8,
+            0xD9, 0x22, 0xB3, 0xDE, 0xCC, 0x4A, 0xC3, 0x98,
+            0x1E, 0xC1, 0x8B, 0x93, 0x6A, 0x30, 0x9C, 0xE7,
         };
 
         private static readonly DateTimeOffset s_expiredTimestamp
-            = TestClock.TestValue.AddHours(-0.5);
+                = TestClock.TestValue.AddHours(-0.5);
 
         private static readonly byte[] s_expiredSignature = new byte[]
         {
-            131, 53, 133, 85, 199, 77, 20, 178,
-            23, 88, 159, 189, 57, 186, 157, 67,
-            4, 180, 151, 19, 71, 87, 14, 147,
-            161, 168, 88, 243, 254, 88, 31, 149
+            0x83, 0x35, 0x85, 0x55, 0xC7, 0x4D, 0x14, 0xB2,
+            0x17, 0x58, 0x9F, 0xBD, 0x39, 0xBA, 0x9D, 0x43,
+            0x04, 0xB4, 0x97, 0x13, 0x47, 0x57, 0x0E, 0x93,
+            0xA1, 0xA8, 0x58, 0xF3, 0xFE, 0x58, 0x1F, 0x95,
         };
 
         private TestClock _testClock;
 
         [Fact]
-        public async Task SignatureClientLoadsKey()
-        {
-            var client = CreateClient();
-
-            var signature = await client.CreateAsync(TestKeyLookup.ValidKeyId);
-
-            signature.Key.Should().Equal(TestKeyLookup.TestKey);
-        }
-
-        [Fact]
         public async Task SignatureClientThrowsIfKeyCannotBeFound()
         {
             var client = CreateClient();
+            var signature = GetTestParamsWithInvalidKey();
 
-            Func<Task> task = () => client.CreateAsync(TestKeyLookup.InvalidKeyId);
+            Func<Task> task = () => client.ValidateAsync(signature, TestMethod, TestUri, new StringStream(""));
 
             await task.Should().ThrowExactlyAsync<KeyNotFoundException>();
         }
 
-        //[Fact]
-        //public async Task SignatureClientValidatesValidSignatureCorrectly()
-        //{
-        //    var client = CreateClient();
-        //    var message = CreateTestMessage();
-        //    var signature = await client.CreateAsync(TestKeyLookup.ValidKeyId,
-        //        signature: s_testMessageDefaultSignature);
+        [Fact]
+        public async Task SignatureClientCorrectlyValidatesIfSignatureIsValid()
+        {
+            var client = CreateClient();
+            var signature = GetTestParams();
 
-        //    var result = client.Validate(signature,
-        //        message, TestNonce, TestClock.TestValue);
+            var result = await client.ValidateAsync(signature, TestMethod, TestUri, new StringStream(""));
 
-        //    result.Should().Be(SignatureValidationResult.OK);
-        //}
+            result.Should().Be(SignatureValidationResult.OK);
+        }
 
-        //[Fact]
-        //public async Task SignatureClientCorrectlyValidatesIfSignatureIsValid()
-        //{
-        //    var client = CreateClient();
-        //    var message = CreateTestMessage();
-        //    var signature = await client.CreateAsync(TestKeyLookup.ValidKeyId,
-        //        signature: s_testMessageDefaultSignature);
+        [Fact]
+        public async Task SignatureClientCorrectlyValidatesIfTimestampIsOffByLessThanASecond()
+        {
+            var client = CreateClient();
+            var signature = GetTestParams();
+            signature.Timestamp += TimeSpan.FromMilliseconds(500);
 
-        //    var result = client.Validate(signature,
-        //        message, TestNonce, TestClock.TestValue);
+            var result = await client.ValidateAsync(signature, TestMethod, TestUri, new StringStream(""));
 
-        //    result.Should().Be(SignatureValidationResult.OK);
-        //}
+            result.Should().Be(SignatureValidationResult.OK);
+        }
 
-        //[Fact]
-        //public async Task SignatureClientCorrectlyValidatesIfTimestampIsOffByLessThanASecond()
-        //{
-        //    var client = CreateClient();
-        //    var message = CreateTestMessage();
-        //    var signature = await client.CreateAsync(TestKeyLookup.ValidKeyId,
-        //        signature: s_testMessageDefaultSignature);
+        [Fact]
+        public async Task SignatureClientFailsValidationIfSignatureIsInvalid()
+        {
+            var client = CreateClient();
+            var signature = GetTestParams();
+            signature.Nonce = TestNonce2;
 
-        //    var result = client.Validate(signature,
-        //        message, TestNonce, TestClock.TestValue.AddMilliseconds(500));
+            var result = await client.ValidateAsync(signature, TestMethod, TestUri, new StringStream(""));
 
-        //    result.Should().Be(SignatureValidationResult.OK);
-        //}
+            result.Should().Be(SignatureValidationResult.Invalid);
+        }
 
-        //[Fact]
-        //public async Task SignatureClientFailsValidationIfSignatureIsInvalid()
-        //{
-        //    var client = CreateClient();
-        //    var message = CreateTestMessage();
-        //    var signature = await client.CreateAsync(TestKeyLookup.ValidKeyId,
-        //        signature: s_testMessageDefaultSignature2);
+        [Fact]
+        public async Task SignatureClientFailsValidationIfTimestampIsIncorrect()
+        {
+            var client = CreateClient();
+            var signature = GetTestParams();
+            signature.Timestamp += TimeSpan.FromSeconds(5);
 
-        //    var result = client.Validate(signature,
-        //        message, TestNonce, TestClock.TestValue);
+            var result = await client.ValidateAsync(signature, TestMethod, TestUri, new StringStream(""));
 
-        //    result.Should().Be(SignatureValidationResult.Invalid);
-        //}
+            result.Should().Be(SignatureValidationResult.Invalid);
+        }
 
-        //[Fact]
-        //public async Task SignatureClientFailsValidationIfTimestampIsIncorrect()
-        //{
-        //    var client = CreateClient();
-        //    var message = CreateTestMessage();
-        //    var expected = new byte[] { };
-        //    var signature = await client.CreateAsync(TestKeyLookup.ValidKeyId,
-        //        signature: expected);
+        [Fact]
+        public async Task SignatureClientFailsValidationIfSignatureIsExpired()
+        {
+            var client = CreateClient();
+            var signature = GetExpiredTestParams();
 
-        //    var result = client.Validate(signature,
-        //        message, TestNonce, TestClock.TestValue.AddMinutes(5));
+            var result = await client.ValidateAsync(signature, TestMethod, TestUri, new StringStream(""));
 
-        //    result.Should().Be(SignatureValidationResult.Invalid);
-        //}
+            result.Should().Be(SignatureValidationResult.Expired);
+        }
 
-        //[Fact]
-        //public async Task SignatureClientFailsValidationIfSignatureIsExpired()
-        //{
-        //    var client = CreateClient();
-        //    var message = CreateTestMessage();
-        //    var signature = await client.CreateAsync(TestKeyLookup.ValidKeyId,
-        //        signature: s_expiredSignature);
+        [Fact]
+        public async Task SignatureClientFailsValidationIfSignatureIsNotYetValid()
+        {
+            var client = CreateClient();
+            var signature = GetNotYetValidTestParams();
 
-        //    var result = client.Validate(signature,
-        //        message, TestNonce, s_expiredTimestamp);
+            var result = await client.ValidateAsync(signature,
+                TestMethod, TestUri, new StringStream(""));
 
-        //    result.Should().Be(SignatureValidationResult.Expired);
-        //}
+            result.Should().Be(SignatureValidationResult.Expired);
+        }
 
-        //[Fact]
-        //public async Task SignatureClientFailsValidationIfSignatureIsNotYetValid()
-        //{
-        //    var client = CreateClient();
-        //    var message = CreateTestMessage();
-        //    var signature = await client.CreateAsync(TestKeyLookup.ValidKeyId,
-        //        signature: s_notYetValidSignature);
+        [Fact]
+        public async Task SignatureClientFailsValidationIfNonceIsReused()
+        {
+            var client = CreateClient();
+            var signature = GetTestParams();
 
-        //    var result = client.Validate(signature,
-        //        message, TestNonce, s_notYetValidTimestamp);
+            await client.ValidateAsync(signature, TestMethod, TestUri, new StringStream(""));
+            var result = await client.ValidateAsync(signature, TestMethod, TestUri, new StringStream(""));
 
-        //    result.Should().Be(SignatureValidationResult.Expired);
-        //}
+            result.Should().Be(SignatureValidationResult.Duplicate);
+        }
 
-        //[Fact]
-        //public async Task SignatureClientFailsValidationIfNonceIsReused()
-        //{
-        //    var client = CreateClient();
-        //    var message = CreateTestMessage();
-        //    var signature = await client.CreateAsync(TestKeyLookup.ValidKeyId,
-        //        signature: s_testMessageDefaultSignature);
+        [Fact]
+        public async Task SignatureClientCorrectlyValidatesTwoSignaturesInARow()
+        {
+            var client = CreateClient();
+            var signature = GetTestParams();
+            var signature2 = GetTestParams2();
 
-        //    client.Validate(signature, message, TestNonce, TestClock.TestValue);
-        //    var result = client.Validate(signature,
-        //        message, TestNonce, TestClock.TestValue);
+            await client.ValidateAsync(signature, TestMethod, TestUri, new StringStream(""));
+            var result = await client.ValidateAsync(signature2,
+                TestMethod, TestUri, new StringStream(""));
 
-        //    result.Should().Be(SignatureValidationResult.Duplicate);
-        //}
+            result.Should().Be(SignatureValidationResult.OK);
+        }
 
-        //[Fact]
-        //public async Task SignatureClientCorrectlyValidatesTwoSignaturesInARow()
-        //{
-        //    var client = CreateClient();
-        //    var message = CreateTestMessage();
-        //    var signature = await client.CreateAsync(TestKeyLookup.ValidKeyId,
-        //        signature: s_testMessageDefaultSignature);
-        //    var signature2 = await client.CreateAsync(TestKeyLookup.ValidKeyId,
-        //        signature: s_testMessageDefaultSignature2);
+        [Fact]
+        public async Task SignatureClientCorrectlyValidatesIfNonceIsExpired()
+        {
+            var client = CreateClient();
 
-        //    client.Validate(signature, message, TestNonce, TestClock.TestValue);
-        //    var result = client.Validate(signature2,
-        //        message, TestNonce2, TestClock.TestValue);
+            var signature = GetTestParams();
+            var result = await client.ValidateAsync(signature, TestMethod, TestUri, new StringStream(""));
+            result.Should().Be(SignatureValidationResult.OK);
 
-        //    result.Should().Be(SignatureValidationResult.OK);
-        //}
+            _testClock.UtcNow += TimeSpan.FromHours(1);
+            var signature2 = GetTestParams();
+            var result2 = await client.ValidateAsync(signature2, TestMethod,
+                TestUri, new StringStream(""));
 
-        //[Fact]
-        //public async Task SignatureClientCorrectlyValidatesIfNonceIsExpired()
-        //{
-        //    var client = CreateClient();
-        //    var message = CreateTestMessage();
-        //    var signature = await client.CreateAsync(TestKeyLookup.ValidKeyId,
-        //        signature: s_testMessageDefaultSignature);
+            result2.Should().Be(SignatureValidationResult.OK);
+        }
 
-        //    client.Validate(signature, message, TestNonce, TestClock.TestValue);
-        //    _testClock.UtcNow += TimeSpan.FromHours(1);
-        //    var result = client.Validate(signature,
-        //        message, TestNonce, TestClock.TestValue);
+        private SignatureParams GetTestParams()
+        {
+            return new SignatureParams
+            {
+                KeyId = TestKeyLookup.ValidKeyId,
+                Nonce = TestNonce,
+                Timestamp = TestClock.TestValue,
+                Signature = s_testMessageDefaultSignature
+            };
+        }
 
-        //    result.Should().Be(SignatureValidationResult.OK);
-        //}
+        private SignatureParams GetTestParams2()
+        {
+            return new SignatureParams
+            {
+                KeyId = TestKeyLookup.ValidKeyId,
+                Nonce = TestNonce2,
+                Timestamp = TestClock.TestValue,
+                Signature = s_testMessageDefaultSignature2
+            };
+        }
 
-        //[Fact]
-        //public async Task SignatureClientGeneratesRandomNonce()
-        //{
-        //    var client = CreateClient();
-        //    var message = CreateTestMessage();
-        //    var signature = await client.CreateAsync(TestKeyLookup.ValidKeyId);
+        private SignatureParams GetExpiredTestParams()
+        {
+            return new SignatureParams
+            {
+                KeyId = TestKeyLookup.ValidKeyId,
+                Nonce = TestNonce,
+                Timestamp = s_expiredTimestamp,
+                Signature = s_expiredSignature
+            };
+        }
 
-        //    client.Calculate(signature, message, out var nonce1, out _);
-        //    client.Calculate(signature, message, out var nonce2, out _);
+        private SignatureParams GetNotYetValidTestParams()
+        {
+            return new SignatureParams
+            {
+                KeyId = TestKeyLookup.ValidKeyId,
+                Nonce = TestNonce,
+                Timestamp = s_notYetValidTimestamp,
+                Signature = s_notYetValidSignature
+            };
+        }
 
-        //    nonce1.Should().NotBe(nonce2);
-        //}
-
-        //[Fact]
-        //public async Task SignatureClientUsesCurrentTime()
-        //{
-        //    var client = CreateClient();
-        //    var message = CreateTestMessage();
-        //    var signature = await client.CreateAsync(TestKeyLookup.ValidKeyId);
-
-        //    client.Calculate(signature, message, out _, out var timestamp);
-
-        //    timestamp.Should().Be(_testClock.UtcNow);
-        //}
-
-        //[Fact]
-        //public async Task SignatureClientGeneratesValidSignature()
-        //{
-        //    var client = CreateClient();
-        //    var message = CreateTestMessage();
-        //    var signature = await client.CreateAsync(TestKeyLookup.ValidKeyId);
-
-        //    signature.Hash = client.Calculate(signature, message, out var nonce, out var timestamp);
-
-        //    var result = client.Validate(signature, message, nonce, timestamp);
-        //    result.Should().Be(SignatureValidationResult.OK);
-        //}
+        private SignatureParams GetTestParamsWithInvalidKey()
+        {
+            return new SignatureParams
+            {
+                KeyId = TestKeyLookup.InvalidKeyId,
+                Nonce = TestNonce,
+                Timestamp = TestClock.TestValue,
+                Signature = s_testMessageDefaultSignature
+            };
+        }
 
         private HttpSignatureValidator CreateClient()
         {
