@@ -20,7 +20,7 @@ namespace Decos.Http.Signatures.Validation.Tests
             13, 46, 189, 190, 2, 99, 181, 235,
             139, 110, 13, 128, 230, 244, 222, 134 };
 
-        public Task<bool> TryGetKeyAsync(string keyId, out byte[] key)
+        public Task<bool> GetKeyOrDefault(string keyId, out byte[] key)
         {
             if (keyId == ValidKeyId)
             {
@@ -30,6 +30,16 @@ namespace Decos.Http.Signatures.Validation.Tests
 
             key = null;
             return Task.FromResult(false);
+        }
+
+        public Task<byte[]> GetKeyOrDefaultAsync(string keyId)
+        {
+            if (keyId == ValidKeyId)
+            {
+                return Task.FromResult(TestKey);
+            }
+
+            return Task.FromResult<byte[]>(null);
         }
     }
 }

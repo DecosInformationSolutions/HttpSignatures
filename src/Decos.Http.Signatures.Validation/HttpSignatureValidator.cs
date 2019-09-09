@@ -72,8 +72,8 @@ namespace Decos.Http.Signatures.Validation
             if (Cache.TryGetValue(entry, out _))
                 return SignatureValidationResult.Duplicate;
 
-            var hasKey = await KeyLookup.TryGetKeyAsync(signature.KeyId, out var key).ConfigureAwait(false);
-            if (!hasKey)
+            var key = await KeyLookup.GetKeyOrDefaultAsync(signature.KeyId).ConfigureAwait(false);
+            if (key == null)
                 throw KeyNotFoundException.WithId(signature.KeyId);
 
             var algorithm = new HttpSignatureAlgorithm(key, Clock);
