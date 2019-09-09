@@ -3,6 +3,11 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <Authors>Vivelin</Authors>
+    <Company>Decos Information Solutions</Company>
+    <PackageProjectUrl>https://github.com/DecosInformationSolutions/HttpSignatures</PackageProjectUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <Description>A .NET Standard 2.0 library for validating signatures. Typically, the AuthenticationBuilder extension AddSignature would be used to add an ASP.NET Core authentication handler that authenticates requests with a valid signature.</Description>
   </PropertyGroup>
 
   <ItemGroup>

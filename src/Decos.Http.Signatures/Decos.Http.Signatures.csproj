@@ -3,6 +3,12 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Authors>Vivelin</Authors>
+    <Company>Decos Information Solutions</Company>
+    <Description>A .NET Standard 2.0 library for generating signatures on HTTP messages. Typically, the SignatureAuthorizationHandler is used with an HttpClient for signing outgoing requests.</Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/DecosInformationSolutions/HttpSignatures</PackageProjectUrl>
   </PropertyGroup>
 
   <ItemGroup>
