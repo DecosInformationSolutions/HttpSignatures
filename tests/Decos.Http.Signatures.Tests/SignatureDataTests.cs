@@ -41,11 +41,10 @@ namespace Decos.Http.Signatures.Tests
         [Fact]
         public void SignatureDataProducesConsistentStringOutput()
         {
-            var expected = @"GET http://localhost:5000/api/test/1?value=2011-12-20T12:13:21Z
-a1d76f81-de54-498c-8ccf-7ed9e069596a
-1324383201
-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=
-";
+            const string expected = "GET http://localhost:5000/api/test/1?value=2011-12-20T12:13:21Z\r\n"
+                + "a1d76f81-de54-498c-8ccf-7ed9e069596a\r\n"
+                + "1324383201\r\n"
+                + "47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=\r\n";
             var data = new SignatureData(TestMethod, TestUri, TestNonce, TestClock.TestValue, TestContentHash);
 
             data.ToString().Should().Be(expected);
