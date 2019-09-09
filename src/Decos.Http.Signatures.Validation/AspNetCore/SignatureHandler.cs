@@ -12,7 +12,7 @@ namespace Decos.Http.Signatures.Validation.AspNetCore
     /// <summary>
     /// Represents an authentication handler that authenticates requests with a valid signature.
     /// </summary>
-    public class SignatureHandler : AuthenticationHandler<SignatureOptions>
+    public class SignatureHandler : AuthenticationHandler<SignatureHandlerOptions>
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="SignatureHandler"/> class.
@@ -23,7 +23,7 @@ namespace Decos.Http.Signatures.Validation.AspNetCore
         /// <param name="encoder">A URL encoder.</param>
         /// <param name="clock">Used to get the current time.</param>
         public SignatureHandler(HttpSignatureValidator validator,
-            IOptionsMonitor<SignatureOptions> options,
+            IOptionsMonitor<SignatureHandlerOptions> options,
             ILoggerFactory logger,
             System.Text.Encodings.Web.UrlEncoder encoder,
             Microsoft.AspNetCore.Authentication.ISystemClock clock)

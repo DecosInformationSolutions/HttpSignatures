@@ -6,7 +6,7 @@ namespace Decos.Http.Signatures.Validation.AspNetCore
     /// <summary>
     /// Provides options for configuring a <see cref="SignatureHandler"/>.
     /// </summary>
-    public class SignatureOptions : AuthenticationSchemeOptions
+    public class SignatureHandlerOptions : AuthenticationSchemeOptions
     {
         /// <summary>
         /// Gets or sets the scheme used in the Authorization header value.

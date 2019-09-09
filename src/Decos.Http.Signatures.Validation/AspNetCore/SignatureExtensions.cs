@@ -1,8 +1,12 @@
 ﻿using System;
 
-using Microsoft.AspNetCore.Authentication;
+using Decos.Http.Signatures.Validation;
+using Decos.Http.Signatures.Validation.AspNetCore;
 
-namespace Decos.Http.Signatures.Validation.AspNetCore
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+
+namespace Microsoft.Extensions.DependencyInjection
 {
     /// <summary>
     /// Provides a set of static methods for configuring Signature authentication.
@@ -26,7 +30,7 @@ namespace Decos.Http.Signatures.Validation.AspNetCore
         /// <param name="configureOptions">Used to configure the scheme options.</param>
         /// <returns>A builder used to configure authentication.</returns>
         public static AuthenticationBuilder AddSignature(this AuthenticationBuilder builder,
-            Action<SignatureOptions> configureOptions)
+            Action<SignatureHandlerOptions> configureOptions)
         {
             return builder.AddSignature(SignatureDefaults.AuthenticationScheme,
                 configureOptions);
@@ -40,7 +44,7 @@ namespace Decos.Http.Signatures.Validation.AspNetCore
         /// <param name="configureOptions">Used to configure the scheme options.</param>
         /// <returns>A builder used to configure authentication.</returns>
         public static AuthenticationBuilder AddSignature(this AuthenticationBuilder builder,
-            string authenticationScheme, Action<SignatureOptions> configureOptions)
+            string authenticationScheme, Action<SignatureHandlerOptions> configureOptions)
         {
             return builder.AddSignature(authenticationScheme,
                 displayName: null,
@@ -56,11 +60,24 @@ namespace Decos.Http.Signatures.Validation.AspNetCore
         /// <param name="configureOptions">Used to configure the scheme options.</param>
         /// <returns>A builder used to configure authentication.</returns>
         public static AuthenticationBuilder AddSignature(this AuthenticationBuilder builder,
-            string authenticationScheme, string displayName, Action<SignatureOptions> configureOptions)
+            string authenticationScheme, string displayName, Action<SignatureHandlerOptions> configureOptions)
         {
-            return builder.AddScheme<SignatureOptions, SignatureHandler>(authenticationScheme,
+            builder.Services.AddSignatureValidation();
+            return builder.AddScheme<SignatureHandlerOptions, SignatureHandler>(authenticationScheme,
                 displayName,
                 configureOptions);
+        }
+
+        /// <summary>
+        /// Adds the services required for HTTP signature validation.
+        /// </summary>
+        /// <param name="services">The service collection to configure.</param>
+        /// <returns>The configured service collection.</returns>
+        public static IServiceCollection AddSignatureValidation(this IServiceCollection services)
+        {
+            services.TryAddSingleton<Decos.Http.Signatures.ISystemClock, Decos.Http.Signatures.SystemClock>();
+            services.TryAddTransient<HttpSignatureValidator>();
+            return services;
         }
     }
 }
