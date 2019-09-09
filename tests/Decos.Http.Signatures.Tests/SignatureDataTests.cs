@@ -19,7 +19,7 @@ namespace Decos.Http.Signatures.Tests
             0xA4, 0x95, 0x99, 0x1B, 0x78, 0x52, 0xB8, 0x55 };
 
         [Fact]
-        public void SignatureDataProducesConsistentOutput()
+        public void SignatureDataProducesConsistentByteOutput()
         {
             var expected = new byte[] {
                     0x47, 0x45, 0x54, 0x20, 0x68, 0x74, 0x74, 0x70, 0x3A, 0x2F, 0x2F, 0x6C, 0x6F, 0x63, 0x61, 0x6C,
@@ -36,6 +36,19 @@ namespace Decos.Http.Signatures.Tests
             var data = new SignatureData(TestMethod, TestUri, TestNonce, TestClock.TestValue, TestContentHash);
 
             data.ToByteArray().Should().Equal(expected);
+        }
+
+        [Fact]
+        public void SignatureDataProducesConsistentStringOutput()
+        {
+            var expected = @"GET http://localhost:5000/api/test/1?value=2011-12-20T12:13:21Z
+a1d76f81-de54-498c-8ccf-7ed9e069596a
+1324383201
+47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=
+";
+            var data = new SignatureData(TestMethod, TestUri, TestNonce, TestClock.TestValue, TestContentHash);
+
+            data.ToString().Should().Be(expected);
         }
     }
 }

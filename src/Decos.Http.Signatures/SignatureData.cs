@@ -72,14 +72,27 @@ namespace Decos.Http.Signatures
         /// <returns>A new byte array that represents the signature data.</returns>
         public byte[] ToByteArray()
         {
+            return Encoding.UTF8.GetBytes(ToString());
+        }
+
+        /// <summary>
+        /// Returns a string that represents the signature data.
+        /// </summary>
+        /// <returns>A string that contains the signature data.</returns>
+        public override string ToString()
+        {
             var builder = new StringBuilder();
             builder.Append(Method.ToUpperInvariant());
             builder.Append(" ");
-            builder.AppendLine(Uri);
-            builder.AppendLine(Nonce);
-            builder.AppendLine(Timestamp.ToUnixTimeSeconds().ToString());
-            builder.AppendLine(Convert.ToBase64String(ContentHash));
-            return Encoding.UTF8.GetBytes(builder.ToString());
+            builder.Append(Uri);
+            builder.Append("\r\n");
+            builder.Append(Nonce);
+            builder.Append("\r\n");
+            builder.Append(Timestamp.ToUnixTimeSeconds().ToString());
+            builder.Append("\r\n");
+            builder.Append(Convert.ToBase64String(ContentHash));
+            builder.Append("\r\n");
+            return builder.ToString();
         }
     }
 }
