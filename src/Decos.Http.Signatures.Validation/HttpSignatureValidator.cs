@@ -56,7 +56,10 @@ namespace Decos.Http.Signatures.Validation
         /// <summary>
         /// Determines whether the signature is valid for the specified message.
         /// </summary>
-        /// <param name="algorithm">The signature to validate.</param>
+        /// <param name="signature">The signature to validate.</param>
+        /// <param name="method">The HTTP method of the message.</param>
+        /// <param name="uri">The requested URI of the message.</param>
+        /// <param name="body">The message body.</param>
         /// <returns>A value indicating the result of the validation.</returns>
         public virtual async Task<SignatureValidationResult> ValidateAsync(
             HttpSignature signature, string method, string uri, Stream body)
@@ -69,7 +72,7 @@ namespace Decos.Http.Signatures.Validation
             if (Cache.TryGetValue(entry, out _))
                 return SignatureValidationResult.Duplicate;
 
-            var hasKey = await KeyLookup.TryGetKeyAsync(signature.KeyId, out var key);
+            var hasKey = await KeyLookup.TryGetKeyAsync(signature.KeyId, out var key).ConfigureAwait(false);
             if (!hasKey)
                 throw KeyNotFoundException.WithId(signature.KeyId);
 

@@ -97,8 +97,8 @@ namespace Decos.Http.Signatures
             if (request == null)
                 throw new ArgumentNullException(nameof(request));
 
-            await request.SignAsync(Algorithm, KeyId);
-            return await base.SendAsync(request, cancellationToken);
+            await request.SignAsync(Algorithm, KeyId).ConfigureAwait(false);
+            return await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
         }
     }
 }

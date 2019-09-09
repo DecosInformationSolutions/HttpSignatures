@@ -29,7 +29,7 @@ namespace Decos.Http.Signatures
             string keyId,
             string scheme = "Signature")
         {
-            var stream = request.Content != null ? await request.Content.ReadAsStreamAsync() : null;
+            var stream = request.Content != null ? await request.Content.ReadAsStreamAsync().ConfigureAwait(false) : null;
             var hash = signatureAlgorithm.CalculateHash(request.Method.ToString(),
                 request.RequestUri.OriginalString, stream, out var nonce, out var timestamp);
 

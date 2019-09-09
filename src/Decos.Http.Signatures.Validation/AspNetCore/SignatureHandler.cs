@@ -54,7 +54,7 @@ namespace Decos.Http.Signatures.Validation.AspNetCore
 
             authValue = authValue.Substring(Options.AuthenticationScheme.Length).TrimStart();
             var signature = HttpSignature.Parse(authValue);
-            var result = await Validator.ValidateAsync(Request, signature);
+            var result = await Validator.ValidateAsync(Request, signature).ConfigureAwait(false);
             switch (result)
             {
                 case SignatureValidationResult.OK:

@@ -6,16 +6,41 @@ using System.Text.RegularExpressions;
 
 namespace Decos.Http.Signatures
 {
+    /// <summary>
+    /// Represents the signature of an HTTP message.
+    /// </summary>
     public class HttpSignature
     {
+        /// <summary>
+        /// Gets or sets an identifier of the key used in the signature.
+        /// </summary>
         public string KeyId { get; set; }
 
+        /// <summary>
+        /// Gets or sets the nonce used in the signature.
+        /// </summary>
         public string Nonce { get; set; }
 
+        /// <summary>
+        /// Gets or sets the point in time the signature is created.
+        /// </summary>
         public DateTimeOffset Timestamp { get; set; }
 
+        /// <summary>
+        /// Gets or sets the actual signature hash.
+        /// </summary>
         public byte[] Hash { get; set; }
 
+        /// <summary>
+        /// Creates a new <see cref="HttpSignature"/> from the specified serialized string.
+        /// </summary>
+        /// <param name="serializedString">The signature string to parse.</param>
+        /// <returns>
+        /// A new <see cref="HttpSignature"/> for <paramref name="serializedString"/>.
+        /// </returns>
+        /// <exception cref="FormatException">
+        /// A required value is missing or the created value is not a valid date/time.
+        /// </exception>
         public static HttpSignature Parse(string serializedString)
         {
             var items = Deserialize(serializedString);
@@ -43,17 +68,10 @@ namespace Decos.Http.Signatures
             };
         }
 
-        private static DateTimeOffset ParseCreated(string created)
-        {
-            if (long.TryParse(created, out var seconds))
-                return DateTimeOffset.FromUnixTimeSeconds(seconds);
-
-            if (DateTimeOffset.TryParse(created, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out var dateTime))
-                return dateTime;
-
-            throw new FormatException($"The 'created' value is not a recognized date/time value. Value: \"{created}\"");
-        }
-
+        /// <summary>
+        /// Returns a string that represents the signature.
+        /// </summary>
+        /// <returns>A string that represents the current signature.</returns>
         public override string ToString()
         {
             var builder = new StringBuilder();
@@ -77,6 +95,17 @@ namespace Decos.Http.Signatures
                 dictionary.Add(key, value);
             }
             return dictionary;
+        }
+
+        private static DateTimeOffset ParseCreated(string created)
+        {
+            if (long.TryParse(created, out var seconds))
+                return DateTimeOffset.FromUnixTimeSeconds(seconds);
+
+            if (DateTimeOffset.TryParse(created, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out var dateTime))
+                return dateTime;
+
+            throw new FormatException($"The 'created' value is not a recognized date/time value. Value: \"{created}\"");
         }
     }
 }
