@@ -137,14 +137,17 @@ namespace Decos.Http.Signatures
                 if (stream == null)
                     return sha256.ComputeHash(new byte[0]);
 
-                var offset = stream.Position;
+                long? offset = null;
                 if (stream.CanSeek)
+                {
+                    offset = stream.Position;
                     stream.Seek(0, SeekOrigin.Begin);
+                }
 
                 contentHash = sha256.ComputeHash(stream);
 
-                if (stream.CanSeek)
-                    stream.Seek(offset, SeekOrigin.Begin);
+                if (stream.CanSeek && offset != null)
+                    stream.Seek(offset.Value, SeekOrigin.Begin);
             }
             return contentHash;
         }
