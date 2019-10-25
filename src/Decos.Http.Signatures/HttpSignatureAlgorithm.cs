@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Security.Cryptography;
+using Microsoft.Extensions.Logging;
 
 namespace Decos.Http.Signatures
 {
@@ -41,6 +42,19 @@ namespace Decos.Http.Signatures
         }
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="HttpSignatureAlgorithm"/> class with the
+        /// specified key and system clock mechanism. This instance will have logging enabled.
+        /// </summary>
+        /// <param name="key">The key used to generate signatures.</param>
+        /// <param name="clock">A mechanism used to retrieve the current time.</param>
+        /// <param name="logger">A logger used to write debugging output.</param>
+        public HttpSignatureAlgorithm(byte[] key, ISystemClock clock, ILogger logger)
+            : this(key, clock)
+        {
+            Logger = logger;
+        }
+
+        /// <summary>
         /// Gets the key used in the signature calculation.
         /// </summary>
         public byte[] Key { get; }
@@ -49,6 +63,11 @@ namespace Decos.Http.Signatures
         /// Gets a mechanism for retrieving the current time.
         /// </summary>
         protected ISystemClock Clock { get; }
+
+        /// <summary>
+        /// Gets a logger for writing debugging output, or <c>null</c>.
+        /// </summary>
+        protected ILogger Logger { get; }
 
         /// <summary>
         /// Calculates a new signature for the specified parameters, using a new nonce and timestamp.
@@ -104,6 +123,7 @@ namespace Decos.Http.Signatures
 
             var contentHash = CalculateContentHash(stream);
             var signatureData = new SignatureData(method, uri, nonce, timestamp, contentHash);
+            Logger?.LogDebug("Calculating a signature with the following data: {Data}", signatureData);
             return CalculateHash(signatureData);
         }
 
