@@ -6,9 +6,11 @@ using Decos.Http.Signatures.Tests;
 using FluentAssertions;
 
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Decos.Http.Signatures.Validation.Tests
 {
@@ -58,6 +60,12 @@ namespace Decos.Http.Signatures.Validation.Tests
         };
 
         private TestClock _testClock;
+        private readonly ITestOutputHelper _outputHelper;
+
+        public HttpSignatureValidatorTests(ITestOutputHelper outputHelper)
+        {
+            _outputHelper = outputHelper;
+        }
 
         [Fact]
         public async Task SignatureClientThrowsIfKeyCannotBeFound()
@@ -248,7 +256,8 @@ namespace Decos.Http.Signatures.Validation.Tests
                     Clock = _testClock
                 })),
                 new TestClock(),
-                new OptionsWrapper<SignatureOptions>(new SignatureOptions()));
+                new OptionsWrapper<SignatureOptions>(new SignatureOptions()),
+                new LoggerFactory().AddXUnit(_outputHelper, LogLevel.Trace).CreateLogger<HttpSignatureValidator>());
         }
     }
 }

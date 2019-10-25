@@ -15,9 +15,11 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Decos.Http.Signatures.Validation.Tests
 {
@@ -59,6 +61,12 @@ namespace Decos.Http.Signatures.Validation.Tests
         };
 
         private TestClock _testClock;
+        private readonly ITestOutputHelper _outputHelper;
+
+        public AspNetCoreTests(ITestOutputHelper outputHelper)
+        {
+            _outputHelper = outputHelper;
+        }
 
         [Fact]
         public async Task AuthenticationHandlerIgnoresUnauthenticatedRequests()
@@ -207,7 +215,8 @@ namespace Decos.Http.Signatures.Validation.Tests
                     Clock = _testClock
                 })),
                 new TestClock(),
-                new OptionsWrapper<SignatureOptions>(new SignatureOptions()));
+                new OptionsWrapper<SignatureOptions>(new SignatureOptions()),
+                new LoggerFactory().AddXUnit(_outputHelper, LogLevel.Trace).CreateLogger<HttpSignatureValidator>());
         }
 
         private TestServer CreateTestServer(bool requireAuthorization = true)
