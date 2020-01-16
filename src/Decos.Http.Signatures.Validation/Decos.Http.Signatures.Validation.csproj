@@ -8,7 +8,7 @@
     <PackageProjectUrl>https://github.com/DecosInformationSolutions/HttpSignatures</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Description>A .NET Standard 2.0 library for validating signatures. Typically, the AuthenticationBuilder extension AddSignature would be used to add an ASP.NET Core authentication handler that authenticates requests with a valid signature.</Description>
-    <Version>1.1.0</Version>
+    <Version>1.2.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
