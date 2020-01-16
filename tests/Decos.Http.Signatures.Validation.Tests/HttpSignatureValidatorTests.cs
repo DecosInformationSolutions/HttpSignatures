@@ -191,6 +191,17 @@ namespace Decos.Http.Signatures.Validation.Tests
             result2.Should().Be(SignatureValidationResult.OK);
         }
 
+        [Fact]
+        public async Task SignatureClientCorrectlyValidatesIfStreamIsAsyncOnly()
+        {
+            var validator = CreateValidator();
+            var signature = GetTestSignature();
+
+            var result = await validator.ValidateAsync(signature, TestMethod, TestUri, new AsyncOnlyStringStream(""));
+
+            result.Should().Be(SignatureValidationResult.OK);
+        }
+
         private HttpSignature GetTestSignature()
         {
             return new HttpSignature
