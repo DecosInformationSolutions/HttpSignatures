@@ -106,7 +106,7 @@ namespace Decos.Http.Signatures
         }
 
         /// <summary>
-        /// Calculates a new signature for the specified parameters, using a new nonce and
+        /// Calculates a new signature for the specified parameters, generating a new nonce and
         /// timestamp.
         /// </summary>
         /// <param name="method">The HTTP method of the message.</param>
@@ -126,7 +126,7 @@ namespace Decos.Http.Signatures
         /// </list>
         /// </returns>
         public async Task<(byte[] hash, string nonce, DateTimeOffset timestamp)> CalculateHashAsync(
-            string method, string uri, Stream stream, CancellationToken cancellationToken)
+            string method, string uri, Stream stream, CancellationToken cancellationToken = default)
         {
             var nonce = Guid.NewGuid().ToString();
             var timestamp = Clock.UtcNow;
@@ -180,7 +180,7 @@ namespace Decos.Http.Signatures
         /// <paramref name="nonce"/> or <paramref name="timestamp"/> are not specified.
         /// </exception>
         public async Task<byte[]> CalculateHashAsync(string method, string uri, Stream stream,
-            string nonce, DateTimeOffset timestamp, CancellationToken cancellationToken)
+            string nonce, DateTimeOffset timestamp, CancellationToken cancellationToken = default)
         {
             if (method == null)
                 throw new ArgumentNullException(nameof(method));

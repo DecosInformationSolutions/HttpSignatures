@@ -30,8 +30,8 @@ namespace Decos.Http.Signatures
             string scheme = "Signature")
         {
             var stream = request.Content != null ? await request.Content.ReadAsStreamAsync().ConfigureAwait(false) : null;
-            var hash = signatureAlgorithm.CalculateHash(request.Method.ToString(),
-                request.RequestUri.OriginalString, stream, out var nonce, out var timestamp);
+            var (hash, nonce, timestamp) = await signatureAlgorithm.CalculateHashAsync(request.Method.ToString(),
+                request.RequestUri.OriginalString, stream, default);
 
             var param = new HttpSignature
             {

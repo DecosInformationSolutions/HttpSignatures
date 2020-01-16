@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.Extensions.Caching.Memory;
@@ -33,7 +34,6 @@ namespace Decos.Http.Signatures.Validation
             Clock = clock;
             Options = options.Value;
         }
-
 
         /// <summary>
         /// Initializes a new instance of the <see cref="HttpSignatureValidator"/> class with the
@@ -89,8 +89,22 @@ namespace Decos.Http.Signatures.Validation
         /// <param name="uri">The requested URI of the message.</param>
         /// <param name="body">The message body.</param>
         /// <returns>A value indicating the result of the validation.</returns>
-        public virtual async Task<SignatureValidationResult> ValidateAsync(
+        public Task<SignatureValidationResult> ValidateAsync(
             HttpSignature signature, string method, string uri, Stream body)
+            => ValidateAsync(signature, method, uri, body, default);
+
+        /// <summary>
+        /// Determines whether the signature is valid for the specified message.
+        /// </summary>
+        /// <param name="signature">The signature to validate.</param>
+        /// <param name="method">The HTTP method of the message.</param>
+        /// <param name="uri">The requested URI of the message.</param>
+        /// <param name="body">The message body.</param>
+        /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+        /// <returns>A value indicating the result of the validation.</returns>
+        public virtual async Task<SignatureValidationResult> ValidateAsync(
+            HttpSignature signature, string method, string uri, Stream body,
+            CancellationToken cancellationToken)
         {
             var timeDiff = Clock.UtcNow - signature.Timestamp;
             if (timeDiff.Duration() > Options.ClockSkewMargin)
@@ -113,8 +127,8 @@ namespace Decos.Http.Signatures.Validation
                 throw KeyNotFoundException.WithId(signature.KeyId);
 
             var algorithm = new HttpSignatureAlgorithm(key, Clock, Logger);
-            var newHash = algorithm.CalculateHash(method, uri, body, signature.Nonce,
-                signature.Timestamp);
+            var newHash = await algorithm.CalculateHashAsync(method, uri, body, signature.Nonce,
+                signature.Timestamp, cancellationToken).ConfigureAwait(false);
             if (!newHash.HashEquals(signature.Hash))
             {
                 Logger?.LogInformation("The signature for {Method} {Uri} with nonce '{Nonce}' and timestamp {Timestamp} does not match.",
