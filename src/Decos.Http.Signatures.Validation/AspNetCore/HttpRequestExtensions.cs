@@ -25,6 +25,9 @@ namespace Decos.Http.Signatures.Validation.AspNetCore
             this HttpSignatureValidator validator, HttpRequest request,
             HttpSignature signature)
         {
+            // Allow to read the request body multiple times
+            request.EnableBuffering();
+            
             // First, we try the raw request URL (if available)
             var requestFeature = request.HttpContext.Features.Get<IHttpRequestFeature>();
             if (!string.IsNullOrEmpty(requestFeature.RawTarget))
