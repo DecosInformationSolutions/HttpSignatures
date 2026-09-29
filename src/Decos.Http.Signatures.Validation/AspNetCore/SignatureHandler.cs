@@ -53,8 +53,34 @@ namespace Decos.Http.Signatures.Validation.AspNetCore
                 return AuthenticateResult.NoResult();
 
             authValue = authValue.Substring(Options.AuthenticationScheme.Length).TrimStart();
-            var signature = HttpSignature.Parse(authValue);
-            var result = await Validator.ValidateAsync(Request, signature).ConfigureAwait(false);
+
+            HttpSignature signature;
+            try
+            {
+                signature = HttpSignature.Parse(authValue);
+            }
+            catch (Exception ex) when (ex is FormatException || ex is ArgumentException)
+            {
+                // Parsing runs on unauthenticated, attacker-controlled input. Letting the exception
+                // escape surfaces as a 500 and hands out a malformed-header oracle.
+                Logger.LogInformation("Rejected a signature that could not be parsed: {Message}",
+                    ex.Message);
+                return AuthenticateResult.Fail("The signature could not be parsed.");
+            }
+
+            SignatureValidationResult result;
+            try
+            {
+                result = await Validator.ValidateAsync(Request, signature).ConfigureAwait(false);
+            }
+            catch (KeyNotFoundException)
+            {
+                // Deliberately indistinguishable from an invalid signature. Responding differently
+                // for known and unknown key IDs lets an unauthenticated caller enumerate them.
+                Logger.LogInformation("Rejected a signature with an unrecognized key ID");
+                return AuthenticateResult.Fail("The signature is not valid.");
+            }
+
             switch (result)
             {
                 case SignatureValidationResult.OK:

@@ -8,7 +8,17 @@
     <PackageProjectUrl>https://github.com/DecosInformationSolutions/HttpSignatures</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Description>A .NET Standard 2.0 library for validating signatures. Typically, the AuthenticationBuilder extension AddSignature would be used to add an ASP.NET Core authentication handler that authenticates requests with a valid signature.</Description>
-    <Version>1.2.1</Version>
+    <Version>2.0.0</Version>
+    <PackageReleaseNotes>
+Security release. Contains a breaking change to the signed payload.
+
+- Malformed Authorization headers now return 401 instead of escaping as an unhandled exception,
+  and an unknown key ID is rejected identically to an invalid signature, removing a key-ID
+  enumeration oracle.
+- Inherits the whole-body content hash from Decos.Http.Signatures 2.0.0.
+  BREAKING: for bodies larger than 8192 bytes, signatures produced by 1.x do not validate against
+  2.x and vice versa. Signers and validators must be upgraded together.
+    </PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
