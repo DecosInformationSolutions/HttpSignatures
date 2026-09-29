@@ -255,10 +255,18 @@ namespace Decos.Http.Signatures
                     stream.Seek(0, SeekOrigin.Begin);
                 }
 
+                // The whole stream must be hashed. Hashing a single buffer would leave every byte
+                // beyond it outside the signature, and a short read would exclude more still: a
+                // stream is never obliged to fill the buffer in one call.
                 var buffer = new byte[ContentBufferSize];
-                var bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken)
-                    .ConfigureAwait(false);
-                contentHash = sha256.ComputeHash(buffer, 0, bytesRead);
+                int bytesRead;
+                while ((bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken)
+                    .ConfigureAwait(false)) > 0)
+                {
+                    sha256.TransformBlock(buffer, 0, bytesRead, null, 0);
+                }
+                sha256.TransformFinalBlock(Array.Empty<byte>(), 0, 0);
+                contentHash = sha256.Hash;
 
                 if (stream.CanSeek && offset != null)
                     stream.Seek(offset.Value, SeekOrigin.Begin);
