@@ -225,7 +225,7 @@ namespace Decos.Http.Signatures.Validation.Tests
                 .Configure(app =>
                 {
                     app.UseAuthentication();
-                    app.Use(async (context, next) =>
+                    app.Use(async (HttpContext context, RequestDelegate next) =>
                     {
                         if (requireAuthorization && !context.User.Identity.IsAuthenticated)
                         {
