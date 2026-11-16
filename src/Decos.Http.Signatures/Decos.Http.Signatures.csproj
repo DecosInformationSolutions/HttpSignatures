@@ -9,16 +9,19 @@
     <Description>A .NET Standard 2.0 library for generating signatures on HTTP messages. Typically, the SignatureAuthorizationHandler is used with an HttpClient for signing outgoing requests.</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/DecosInformationSolutions/HttpSignatures</PackageProjectUrl>
-    <Version>2.0.0</Version>
+    <Version>3.0.0</Version>
     <PackageReleaseNotes>
-Security release. Contains a breaking change to the signed payload.
+Security release. Contains a breaking change to how signatures are created and validated.
 
-- The content hash now covers the entire message body. Previously only the first 8192 bytes were
-  hashed, so any content beyond that was not covered by the signature.
-  BREAKING: for bodies larger than 8192 bytes, signatures produced by 1.x do not validate against
-  2.x and vice versa. Signers and validators must be upgraded together. Bodies of 8192 bytes or
-  fewer are unaffected.
-- Malformed Authorization headers and unknown key IDs no longer escape as unhandled exceptions.
+- Signatures are now bound to the scheme and host of the request. A signature that covers only the
+  path is no longer accepted, so it can no longer be replayed against a different host, or against
+  another service that shares the same key.
+  BREAKING: SignAsync now throws InvalidOperationException when the request URI is relative or
+  missing, because such a signature cannot be bound to a host. Use an absolute URI, or an HttpClient
+  with a BaseAddress. Signers and validators must be upgraded together.
+- Host binding is only as strong as the validating application's forwarded-header configuration. A
+  service behind a reverse proxy must restrict trust to known proxies and networks, otherwise the
+  host a signature is bound to can be chosen by the caller.
     </PackageReleaseNotes>
   </PropertyGroup>
 

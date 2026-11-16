@@ -30,5 +30,44 @@ namespace Decos.Http.Signatures.Tests
             param.Timestamp.Should().Be(TestClock.TestValue);
             param.Hash.Should().NotBeEmpty();
         }
+
+        [Fact]
+        public async Task SigningRelativeUriThrows()
+        {
+            var algorithm = new HttpSignatureAlgorithm(TestKeyConstants.TestKey, new TestClock());
+            var request = new HttpRequestMessage(HttpMethod.Get, "/api/test/1");
+
+            Func<Task> task = async () => await request.SignAsync(algorithm, TestKeyConstants.ValidKeyId);
+
+            await task.Should().ThrowExactlyAsync<InvalidOperationException>();
+        }
+
+        [Fact]
+        public async Task SigningWithoutUriThrows()
+        {
+            var algorithm = new HttpSignatureAlgorithm(TestKeyConstants.TestKey, new TestClock());
+            var request = new HttpRequestMessage { Method = HttpMethod.Get, RequestUri = null };
+
+            Func<Task> task = async () => await request.SignAsync(algorithm, TestKeyConstants.ValidKeyId);
+
+            await task.Should().ThrowExactlyAsync<InvalidOperationException>();
+        }
+
+        [Fact]
+        public async Task SigningRelativeUriDoesNotSetAuthorizationHeader()
+        {
+            var algorithm = new HttpSignatureAlgorithm(TestKeyConstants.TestKey, new TestClock());
+            var request = new HttpRequestMessage(HttpMethod.Get, "/api/test/1");
+
+            try
+            {
+                await request.SignAsync(algorithm, TestKeyConstants.ValidKeyId);
+            }
+            catch (InvalidOperationException)
+            {
+            }
+
+            request.Headers.Authorization.Should().BeNull();
+        }
     }
 }
