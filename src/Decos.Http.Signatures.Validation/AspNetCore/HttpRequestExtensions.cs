@@ -27,14 +27,26 @@ namespace Decos.Http.Signatures.Validation.AspNetCore
         {
             // Allow to read the request body multiple times
             request.EnableBuffering();
-            
-            // First, we try the raw request URL (if available)
+
+            // Both candidates below include the scheme and host. A signature that covers only the
+            // path is not bound to any host, so it would authenticate against any host and against
+            // any other service sharing the same key.
+            if (!request.Host.HasValue)
+            {
+                // Without a host there is nothing to bind the signature to.
+                return SignatureValidationResult.Invalid;
+            }
+
+            var authority = request.Scheme + "://" + request.Host.ToUriComponent();
+
+            // First we try the raw request target, which preserves the exact encoding the client
+            // used. GetEncodedUrl() re-encodes, and does not always round-trip what was signed.
             var requestFeature = request.HttpContext.Features.Get<IHttpRequestFeature>();
-            if (!string.IsNullOrEmpty(requestFeature.RawTarget))
+            if (!string.IsNullOrEmpty(requestFeature?.RawTarget))
             {
                 var result = await validator.ValidateAsync(signature,
                     request.Method,
-                    requestFeature.RawTarget,
+                    authority + requestFeature.RawTarget,
                     request.Body).ConfigureAwait(false);
 
                 // If the signature is OK, we're done. If it's Expired or Duplicate, there's no point

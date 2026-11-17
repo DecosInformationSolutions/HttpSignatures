@@ -24,11 +24,27 @@ namespace Decos.Http.Signatures
         /// The authorization header scheme to use when signing the request.
         /// </param>
         /// <returns>A task that represents the asynchronous operation.</returns>
+        /// <exception cref="InvalidOperationException">
+        /// <paramref name="request"/> has no request URI, or its request URI is relative. A
+        /// signature is bound to the scheme and host it was created for, so a relative URI cannot
+        /// be signed.
+        /// </exception>
         public static async Task SignAsync(this HttpRequestMessage request,
             HttpSignatureAlgorithm signatureAlgorithm,
             string keyId,
             string scheme = "Signature")
         {
+            if (request.RequestUri is null || !request.RequestUri.IsAbsoluteUri)
+            {
+                // A signature over a relative URI is not bound to any host, so it would authenticate
+                // against any host and against any other service sharing the same key. Validators
+                // reject such signatures, so fail here rather than produce one that cannot be used.
+                throw new InvalidOperationException(
+                    "The request URI must be an absolute URI in order to sign the request. Specify "
+                    + "an absolute URI, or use an HttpClient with a BaseAddress so the request URI "
+                    + "is resolved before the request is signed.");
+            }
+
             var stream = request.Content != null ? await request.Content.ReadAsStreamAsync().ConfigureAwait(false) : null;
             var (hash, nonce, timestamp) = await signatureAlgorithm.CalculateHashAsync(request.Method.ToString(),
                 request.RequestUri.OriginalString, stream, default);

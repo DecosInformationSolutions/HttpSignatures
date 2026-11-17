@@ -8,16 +8,18 @@
     <PackageProjectUrl>https://github.com/DecosInformationSolutions/HttpSignatures</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Description>A .NET Standard 2.0 library for validating signatures. Typically, the AuthenticationBuilder extension AddSignature would be used to add an ASP.NET Core authentication handler that authenticates requests with a valid signature.</Description>
-    <Version>2.0.0</Version>
+    <Version>3.0.0</Version>
     <PackageReleaseNotes>
-Security release. Contains a breaking change to the signed payload.
+Security release. Contains a breaking change to signature validation.
 
-- Malformed Authorization headers now return 401 instead of escaping as an unhandled exception,
-  and an unknown key ID is rejected identically to an invalid signature, removing a key-ID
-  enumeration oracle.
-- Inherits the whole-body content hash from Decos.Http.Signatures 2.0.0.
-  BREAKING: for bodies larger than 8192 bytes, signatures produced by 1.x do not validate against
-  2.x and vice versa. Signers and validators must be upgraded together.
+- Validation is now bound to the scheme and host of the request. Both validation candidates include
+  the authority, so a signature covering only the path is rejected rather than preferred.
+  BREAKING: clients that sign a relative URI are no longer authenticated. Signers and validators
+  must be upgraded together.
+- A request without a Host header is rejected, because there is nothing to bind the signature to.
+- Host binding depends on the application's forwarded-header configuration. Behind a reverse proxy,
+  restrict ForwardedHeaders trust to known proxies and networks, otherwise the host a signature is
+  bound to can be chosen by the caller.
     </PackageReleaseNotes>
   </PropertyGroup>
 
